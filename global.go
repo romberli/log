@@ -59,6 +59,36 @@ func Fatal(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Fatal(msg, fields...)
 }
 
+// Debugf uses fmt.Sprintf to log a templated message.
+func Debugf(template string, args ...interface{}) {
+	S().Debugf(template, args...)
+}
+
+// Infof uses fmt.Sprintf to log a templated message.
+func Infof(template string, args ...interface{}) {
+	S().Infof(template, args...)
+}
+
+// Warnf uses fmt.Sprintf to log a templated message.
+func Warnf(template string, args ...interface{}) {
+	S().Warnf(template, args...)
+}
+
+// Errorf uses fmt.Sprintf to log a templated message.
+func Errorf(template string, args ...interface{}) {
+	S().Errorf(template, args...)
+}
+
+// Panicf uses fmt.Sprintf to log a templated message, then panics.
+func Panicf(template string, args ...interface{}) {
+	S().Panicf(template, args...)
+}
+
+// Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
+func Fatalf(template string, args ...interface{}) {
+	S().Fatalf(template, args...)
+}
+
 // With creates a child logger and adds structured context to it.
 // Fields added to the child don't affect the parent, and vice versa.
 func With(fields ...zap.Field) *zap.Logger {

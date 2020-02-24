@@ -231,7 +231,7 @@ func (t *testZapLogSuite) TestRotateLog(c *C) {
 	conf := &Config{
 		Level: "info",
 		File: FileLogConfig{
-			Filename: tempDir + "/test.log",
+			FileName: tempDir + "/test.log",
 			MaxSize:  1,
 		},
 	}

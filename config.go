@@ -14,57 +14,119 @@
 package log
 
 import (
+	"os"
+	"path"
+	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 const (
-	defaultLogMaxSize = 300 // MB
+	DefaultLogFileName   = "run.log"
+	defaultLogTimeFormat = "2006-01-02T15:04:05.000"
+	// DefaultLogMaxSize is the default size of log files.
+	DefaultLogMaxSize    = 100 // MB
+	DefaultLogMaxBackups = 5
+	DefaultLogMaxDays    = 7
+	// DefaultLogFormat is the default format of the log.
+	DefaultLogFormat        = "text"
+	defaultLogLevel         = log.InfoLevel
+	DefaultDisableTimestamp = false
 )
 
-// FileLogConfig serializes file log related config in toml/json.
+// FileLogConfig serializes file log related config in yaml/json.
 type FileLogConfig struct {
 	// Log filename, leave empty to disable file log.
-	Filename string `toml:"filename" json:"filename"`
+	FileName string `yaml:"file-name" json:"file-name"`
 	// Max size for a single file, in MB.
-	MaxSize int `toml:"max-size" json:"max-size"`
+	MaxSize int `yaml:"max-size" json:"max-size"`
 	// Max log keep days, default is never deleting.
-	MaxDays int `toml:"max-days" json:"max-days"`
+	MaxDays int `yaml:"max-days" json:"max-days"`
 	// Maximum number of old log files to retain.
-	MaxBackups int `toml:"max-backups" json:"max-backups"`
+	MaxBackups int `yaml:"max-backups" json:"max-backups"`
 }
 
-// Config serializes log related config in toml/json.
+// NewFileLogConfig creates a FileLogConfig.
+func NewFileLogConfig(fileName string, maxSize int, maxDays int, maxBackups int) (fileLogConfig *FileLogConfig, err error) {
+	var baseDir string
+	var logDir string
+
+	fileName = strings.TrimSpace(fileName)
+
+	if fileName == "" {
+		if baseDir, err = os.Getwd(); err != nil {
+			return nil, err
+		}
+
+		logDir = path.Join(baseDir, "log")
+
+		if _, err := os.Stat(logDir); err != nil {
+			if os.IsNotExist(err) {
+				if _, err = os.Create(logDir); err != nil {
+					return nil, err
+				}
+			} else {
+				return nil, err
+			}
+		}
+
+		fileName = path.Join(logDir, DefaultLogFileName)
+	} else {
+		logDir = path.Dir(fileName)
+	}
+
+	fileLogConfig = &FileLogConfig{
+		FileName:   fileName,
+		MaxSize:    maxSize,
+		MaxDays:    maxDays,
+		MaxBackups: maxBackups,
+	}
+
+	return fileLogConfig, nil
+}
+
+// Config serializes log related config in yaml/json.
 type Config struct {
 	// Log level.
-	Level string `toml:"level" json:"level"`
+	Level string `yaml:"level" json:"level"`
 	// Log format. one of json, text, or console.
-	Format string `toml:"format" json:"format"`
+	Format string `yaml:"format" json:"format"`
 	// Disable automatic timestamps in output.
-	DisableTimestamp bool `toml:"disable-timestamp" json:"disable-timestamp"`
+	DisableTimestamp bool `yaml:"disable-timestamp" json:"disable-timestamp"`
 	// File log config.
-	File FileLogConfig `toml:"file" json:"file"`
+	File FileLogConfig `yaml:"file" json:"file"`
 	// Development puts the logger in development mode, which changes the
 	// behavior of DPanicLevel and takes stacktraces more liberally.
-	Development bool `toml:"development" json:"development"`
+	Development bool `yaml:"development" json:"development"`
 	// DisableCaller stops annotating logs with the calling function's file
 	// name and line number. By default, all logs are annotated.
-	DisableCaller bool `toml:"disable-caller" json:"disable-caller"`
+	DisableCaller bool `yaml:"disable-caller" json:"disable-caller"`
 	// DisableStacktrace completely disables automatic stacktrace capturing. By
 	// default, stacktraces are captured for WarnLevel and above logs in
 	// development and ErrorLevel and above in production.
-	DisableStacktrace bool `toml:"disable-stacktrace" json:"disable-stacktrace"`
+	DisableStacktrace bool `yaml:"disable-stacktrace" json:"disable-stacktrace"`
 	// DisableErrorVerbose stops annotating logs with the full verbose error
 	// message.
-	DisableErrorVerbose bool `toml:"disable-error-verbose" json:"disable-error-verbose"`
+	DisableErrorVerbose bool `yaml:"disable-error-verbose" json:"disable-error-verbose"`
 	// SamplingConfig sets a sampling strategy for the logger. Sampling caps the
 	// global CPU and I/O load that logging puts on your process while attempting
 	// to preserve a representative subset of your logs.
 	//
 	// Values configured here are per-second. See zapcore.NewSampler for details.
-	Sampling *zap.SamplingConfig `toml:"sampling" json:"sampling"`
+	Sampling *zap.SamplingConfig `yaml:"sampling" json:"sampling"`
+}
+
+// NewConfig creates a Config.
+func NewConfig(level, format string, fileCfg FileLogConfig) *Config {
+	return &Config{
+		Level:            level,
+		Format:           format,
+		DisableTimestamp: DefaultDisableTimestamp,
+		File:             fileCfg,
+	}
 }
 
 // ZapProperties records some information about zap.
