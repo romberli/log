@@ -1,42 +1,70 @@
-// Copyright 2019 PingCAP, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package log
 
 import (
-	. "github.com/pingcap/check"
-	"go.uber.org/zap"
+	"sync"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-var _ = Suite(&testLogSuite{})
+func newRoutine(t *testing.T, wg *sync.WaitGroup) {
+	defer wg.Done()
+	t.Log("new routine test")
+	Debug("this is new routine debug message")
+	Info("this is new routine info message")
+	Warn("this is new routine warn message")
+}
 
-type testLogSuite struct{}
+func TestLog(t *testing.T) {
+	var (
+		err           error
+		fileLogConfig *FileLogConfig
+		logConfig     *Config
+	)
 
-func (t *testLogSuite) TestExport(c *C) {
-	conf := &Config{Level: "debug", File: FileLogConfig{}, DisableTimestamp: true}
-	lg := newZapTestLogger(conf, c)
-	ReplaceGlobals(lg.Logger, nil)
-	Info("Testing")
-	Debug("Testing")
-	Warn("Testing")
-	Error("Testing")
-	lg.AssertContains("log_test.go:")
+	wg := &sync.WaitGroup{}
+	assert := assert.New(t)
 
-	lg = newZapTestLogger(conf, c)
-	ReplaceGlobals(lg.Logger, nil)
-	logger := With(zap.String("name", "tester"), zap.Int64("age", 42))
-	logger.Info("hello")
-	logger.Debug("world")
-	lg.AssertContains(`name=tester`)
-	lg.AssertContains(`age=42`)
+	level := "info"
+	format := "text"
+	fileName := "/Users/romber/run.log"
+	maxSize := 1
+	maxDays := 1
+	maxBackups := 2
+
+	// init logger
+	t.Log("==========init logger started==========")
+	fileLogConfig, err = NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
+	assert.Nil(err, "init file log config failed")
+
+	logConfig = NewConfig(level, format, *fileLogConfig)
+	MyLogger, MyProps, err = InitLogger(logConfig)
+	assert.Nil(err, "init logger failed")
+	t.Log("==========init logger completed==========\n")
+
+	// print log
+	t.Log("==========print main log entry started==========")
+	Debug("this is main debug message")
+	Info("this is main info message")
+	MyLogger.Warn("this is main warn message")
+	// MyLogger.Error("this is main error message")
+	// MyLogger.Fatal("this is main fatal message")
+	t.Log("==========print main log entry completed==========")
+
+	t.Log("==========print goroutine log entry started==========")
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		t.Log("goroutine test")
+		MyLogger.Debug("this is goroutine debug message")
+		MyLogger.Info("this is goroutine info message")
+		MyLogger.Warn("this is goroutine warn message")
+	}()
+
+	wg.Add(1)
+	go newRoutine(t, wg)
+	t.Log("==========print goroutine log entry completed==========")
+
+	wg.Wait()
 }

@@ -28,9 +28,7 @@ import (
 )
 
 var MyLogger *zap.Logger
-
-// EmptyFileLogConfig is an empty FileLogConfig.
-var EmptyFileLogConfig = FileLogConfig{}
+var MyProps *ZapProperties
 
 func stringToLogLevel(level string) log.Level {
 	switch strings.ToLower(level) {
@@ -135,12 +133,30 @@ func initFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
 }
 
 // newLogger returns a logger
-func newLogger() (*zap.Logger, *ZapProperties) {
-	var props *ZapProperties
+func newLogger() (*zap.Logger, *ZapProperties, error) {
+	var (
+		err    error
+		cfg    *Config
+		stdOut zapcore.WriteSyncer
+		close  func()
+	)
 
-	conf := &Config{Level: "info", File: FileLogConfig{}}
-	MyLogger, props, _ = InitLogger(conf)
-	return MyLogger, props
+	cfg = &Config{Level: "info", File: FileLogConfig{}}
+
+	if stdOut, close, err = zap.Open([]string{"stdout"}...); err != nil {
+		close()
+		return nil, nil, errors.Trace(err)
+	}
+
+	if MyLogger, MyProps, err = InitLoggerWithWriteSyncer(
+		cfg, stdOut, zap.AddStacktrace(zapcore.ErrorLevel),
+		zap.AddCaller(),
+		zap.Development(),
+	); err != nil {
+		return nil, nil, errors.Trace(err)
+	}
+
+	return MyLogger, MyProps, err
 }
 
 // InitLogger initializes a zap logger.
@@ -150,7 +166,6 @@ func InitLogger(cfg *Config) (*zap.Logger, *ZapProperties, error) {
 		lg     *lumberjack.Logger
 		stdOut zapcore.WriteSyncer
 		close  func()
-		props  *ZapProperties
 		output zapcore.WriteSyncer
 	)
 
@@ -168,7 +183,7 @@ func InitLogger(cfg *Config) (*zap.Logger, *ZapProperties, error) {
 		output = stdOut
 	}
 
-	if MyLogger, props, err = InitLoggerWithWriteSyncer(
+	if MyLogger, MyProps, err = InitLoggerWithWriteSyncer(
 		cfg, output, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.AddCaller(),
 		zap.Development(),
@@ -176,9 +191,9 @@ func InitLogger(cfg *Config) (*zap.Logger, *ZapProperties, error) {
 		return nil, nil, errors.Trace(err)
 	}
 
-	ReplaceGlobals(MyLogger, props)
+	ReplaceGlobals(MyLogger, MyProps)
 
-	return MyLogger, props, nil
+	return MyLogger, MyProps, nil
 }
 
 // InitLoggerWithWriteSyncer initializes a zap logger with specified  write syncer.
@@ -220,8 +235,8 @@ func ReplaceGlobals(logger *zap.Logger, props *ZapProperties) {
 }
 
 var (
-	_globalL, _globalP = newLogger()
-	_globalS           = _globalL.Sugar()
+	_globalL, _globalP, _ = newLogger()
+	_globalS              = _globalL.Sugar()
 )
 
 // Sync flushes any buffered log entries.
