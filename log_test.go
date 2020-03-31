@@ -27,7 +27,7 @@ func TestLog(t *testing.T) {
 
 	level := "info"
 	format := "text"
-	fileName := "/Users/romber/run.log"
+	fileName := "/tmp/run.log"
 	maxSize := 1
 	maxDays := 1
 	maxBackups := 2
