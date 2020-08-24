@@ -27,6 +27,11 @@ import (
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
 
+const (
+	DefaultLogLevel = "info"
+	DefaultOutput   = "stdout"
+)
+
 var MyLogger *zap.Logger
 var MyProps *ZapProperties
 
@@ -141,9 +146,9 @@ func newLogger() (*zap.Logger, *ZapProperties, error) {
 		close  func()
 	)
 
-	cfg = &Config{Level: "info", File: FileLogConfig{}}
+	cfg = &Config{Level: DefaultLogLevel, File: FileLogConfig{}}
 
-	if stdOut, close, err = zap.Open([]string{"stdout"}...); err != nil {
+	if stdOut, close, err = zap.Open([]string{DefaultOutput}...); err != nil {
 		close()
 		return nil, nil, errors.Trace(err)
 	}
@@ -176,7 +181,7 @@ func InitLogger(cfg *Config) (*zap.Logger, *ZapProperties, error) {
 
 		output = zapcore.AddSync(lg)
 	} else {
-		if stdOut, close, err = zap.Open([]string{"stdout"}...); err != nil {
+		if stdOut, close, err = zap.Open([]string{DefaultOutput}...); err != nil {
 			close()
 			return nil, nil, errors.Trace(err)
 		}
@@ -239,11 +244,7 @@ var (
 	_globalS              = _globalL.Sugar()
 )
 
-// Sync flushes any buffered log entries.
-func Sync() error {
-	err := L().Sync()
-	if err != nil {
-		return err
-	}
-	return S().Sync()
+// init initiate MyLogger when this package is imported
+func init() {
+	MyLogger, MyProps, _ = newLogger()
 }
