@@ -1,4 +1,4 @@
-module github.com/romber2001/log
+module github.com/romberli/log
 
 require (
 	github.com/pingcap/check v0.0.0-20190102082844-67f458068fc8
