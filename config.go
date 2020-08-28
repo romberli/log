@@ -49,7 +49,7 @@ type FileLogConfig struct {
 }
 
 // NewFileLogConfig creates a FileLogConfig.
-func NewFileLogConfig(fileName string, maxSize int, maxDays int, maxBackups int) (fileLogConfig *FileLogConfig, err error) {
+func NewFileLogConfig(fileName string, maxSize, maxDays, maxBackups int) (fileLogConfig *FileLogConfig, err error) {
 	var baseDir string
 	var logDir string
 
@@ -126,6 +126,21 @@ func NewConfig(level, format string, fileCfg FileLogConfig) *Config {
 		DisableTimestamp: DefaultDisableTimestamp,
 		File:             fileCfg,
 	}
+}
+
+// NewConfig creates a Config with file.
+func NewConfigWithFileLog(level, format, fileName string, maxSize, maxDays, maxBackups int) (*Config, error) {
+	fileCfg, err := NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{
+		Level:            level,
+		Format:           format,
+		DisableTimestamp: DefaultDisableTimestamp,
+		File:             *fileCfg,
+	}, nil
 }
 
 // ZapProperties records some information about zap.

@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 
@@ -17,13 +18,13 @@ func newRoutine(t *testing.T, wg *sync.WaitGroup) {
 
 func TestLog(t *testing.T) {
 	var (
-		err           error
-		fileLogConfig *FileLogConfig
-		logConfig     *Config
+		err error
+		// fileLogConfig *FileLogConfig
+		logConfig *Config
 	)
 
 	wg := &sync.WaitGroup{}
-	assert := assert.New(t)
+	asst := assert.New(t)
 
 	level := "info"
 	format := "text"
@@ -34,21 +35,25 @@ func TestLog(t *testing.T) {
 
 	// init logger
 	t.Log("==========init logger started==========")
-	fileLogConfig, err = NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
-	assert.Nil(err, "init file log config failed")
+	// fileLogConfig, err = NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
+	asst.Nil(err, "init file log config failed")
 
-	logConfig = NewConfig(level, format, *fileLogConfig)
+	// logConfig = NewConfig(level, format, *fileLogConfig)
+	logConfig, err = NewConfigWithFileLog(level, format, fileName, maxSize, maxDays, maxBackups)
+	if err != nil {
+		fmt.Printf("got error when creating log config.\n%s", err.Error())
+	}
+
 	MyLogger, MyProps, err = InitLogger(logConfig)
-	ReplaceGlobals(MyLogger, MyProps)
-	assert.Nil(err, "init logger failed")
+	asst.Nil(err, "init logger failed")
 	t.Log("==========init logger completed==========\n")
 
 	// print log
 	t.Log("==========print main log entry started==========")
 	Debug("this is main debug message")
 	Info("this is main info message")
-	Warn("this is main warn message %s", "sss")
-	// MyLogger.Error("this is main error message")
+	MyLogger.Warnf("this is main warn message %s", "sss")
+	MyLogger.Error("this is main error message")
 	// MyLogger.Fatal("this is main fatal message")
 	t.Log("==========print main log entry completed==========")
 
@@ -58,13 +63,14 @@ func TestLog(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		t.Log("goroutine test")
-		MyLogger.Debug("this is goroutine debug message")
+		Debug("this is goroutine debug message")
 		MyLogger.Info("this is goroutine info message")
 		MyLogger.Warn("this is goroutine warn message")
 	}()
 
 	wg.Add(1)
 	go newRoutine(t, wg)
+	wg.Wait()
 	t.Log("==========print goroutine log entry completed==========")
 
 	wg.Wait()

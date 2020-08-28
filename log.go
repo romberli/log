@@ -32,10 +32,7 @@ const (
 	DefaultOutput   = "stdout"
 )
 
-var (
-	MyLogger *zap.Logger
-	MyProps  *ZapProperties
-)
+var MyProps *ZapProperties
 
 func StringToLogLevel(level string) Level {
 	switch strings.ToLower(level) {
@@ -66,7 +63,10 @@ type textFormatter struct {
 
 // Format implements logrus.Formatter
 func (f *textFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	var b *bytes.Buffer
+	var (
+		err error
+		b   *bytes.Buffer
+	)
 	if entry.Buffer != nil {
 		b = entry.Buffer
 	} else {
@@ -74,12 +74,21 @@ func (f *textFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	if !f.DisableTimestamp {
-		fmt.Fprintf(b, "%s ", entry.Time.Format(defaultLogTimeFormat))
+		_, err = fmt.Fprintf(b, "%s ", entry.Time.Format(defaultLogTimeFormat))
+		if err != nil {
+			return nil, err
+		}
 	}
 	if file, ok := entry.Data["file"]; ok {
-		fmt.Fprintf(b, "%s:%v:", file, entry.Data["line"])
+		_, err = fmt.Fprintf(b, "%s:%v:", file, entry.Data["line"])
+		if err != nil {
+			return nil, err
+		}
 	}
-	fmt.Fprintf(b, " [%s] %s", entry.Level.String(), entry.Message)
+	_, err = fmt.Fprintf(b, " [%s] %s", entry.Level.String(), entry.Message)
+	if err != nil {
+		return nil, err
+	}
 
 	if f.EnableEntryOrder {
 		keys := make([]string, 0, len(entry.Data))
@@ -90,22 +99,31 @@ func (f *textFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Fprintf(b, " %v=%v", k, entry.Data[k])
+			_, err = fmt.Fprintf(b, " %v=%v", k, entry.Data[k])
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		for k, v := range entry.Data {
 			if k != "file" && k != "line" {
-				fmt.Fprintf(b, " %v=%v", k, v)
+				_, err = fmt.Fprintf(b, " %v=%v", k, v)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
 
-	b.WriteByte('\n')
+	err = b.WriteByte('\n')
+	if err != nil {
+		return nil, err
+	}
 
 	return b.Bytes(), nil
 }
 
-func stringToLogFormatter(format string, disableTimestamp bool) logrus.Formatter {
+func StringToLogFormatter(format string, disableTimestamp bool) logrus.Formatter {
 	switch strings.ToLower(format) {
 	case "text":
 		return &textFormatter{
@@ -144,67 +162,82 @@ func initFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
 }
 
 // newLogger returns a logger
-func newLogger() (*zap.Logger, *ZapProperties, error) {
+func newLogger() (*Logger, *ZapProperties, error) {
 	var (
-		err    error
-		cfg    *Config
-		stdOut zapcore.WriteSyncer
-		close  func()
+		err       error
+		cfg       *Config
+		stdOut    zapcore.WriteSyncer
+		closeFunc func()
 	)
 
 	cfg = &Config{
 		Level:  DefaultLogLevel,
-		Format: "text",
+		Format: DefaultLogFormat,
 		File:   FileLogConfig{}}
 
-	if stdOut, close, err = zap.Open([]string{DefaultOutput}...); err != nil {
-		close()
+	stdOut, closeFunc, err = zap.Open([]string{DefaultOutput}...)
+	if err != nil {
+		if closeFunc != nil {
+			closeFunc()
+		}
+
 		return nil, nil, errors.Trace(err)
 	}
 
-	if MyLogger, MyProps, err = InitLoggerWithWriteSyncer(
+	zapLogger, MyProps, err := InitLoggerWithWriteSyncer(
 		cfg, stdOut, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.AddCaller(),
 		zap.Development(),
-	); err != nil {
+	)
+	if err != nil {
 		return nil, nil, errors.Trace(err)
 	}
+
+	MyLogger = NewMyLogger(*zapLogger)
 
 	return MyLogger, MyProps, err
 }
 
 // InitLogger initializes a zap logger.
-func InitLogger(cfg *Config) (*zap.Logger, *ZapProperties, error) {
+func InitLogger(cfg *Config) (*Logger, *ZapProperties, error) {
 	var (
-		err    error
-		lg     *lumberjack.Logger
-		stdOut zapcore.WriteSyncer
-		close  func()
-		output zapcore.WriteSyncer
+		err       error
+		lg        *lumberjack.Logger
+		stdOut    zapcore.WriteSyncer
+		closeFunc func()
+		output    zapcore.WriteSyncer
 	)
 
 	if len(cfg.File.FileName) > 0 {
-		if lg, err = initFileLog(&cfg.File); err != nil {
+		lg, err = initFileLog(&cfg.File)
+		if err != nil {
 			return nil, nil, errors.Trace(err)
 		}
 
 		output = zapcore.AddSync(lg)
 	} else {
-		if stdOut, close, err = zap.Open([]string{DefaultOutput}...); err != nil {
-			close()
+		stdOut, closeFunc, err = zap.Open([]string{DefaultOutput}...)
+		if err != nil {
+			if closeFunc != nil {
+				closeFunc()
+			}
+
 			return nil, nil, errors.Trace(err)
 		}
+
 		output = stdOut
 	}
 
-	if MyLogger, MyProps, err = InitLoggerWithWriteSyncer(
+	zapLogger, MyProps, err := InitLoggerWithWriteSyncer(
 		cfg, output, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.AddCaller(),
 		zap.Development(),
-	); err != nil {
+	)
+	if err != nil {
 		return nil, nil, errors.Trace(err)
 	}
 
+	MyLogger = NewMyLogger(*zapLogger)
 	ReplaceGlobals(MyLogger, MyProps)
 
 	return MyLogger, MyProps, nil
@@ -229,29 +262,6 @@ func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...
 
 	return lg, r, nil
 }
-
-// L returns the global Logger, which can be reconfigured with ReplaceGlobals.
-// It's safe for concurrent use.
-func L() *zap.Logger {
-	return _globalL
-}
-
-// S returns the global SugaredLogger, which can be reconfigured with
-// ReplaceGlobals. It's safe for concurrent use.
-func S() *zap.SugaredLogger {
-	return _globalS
-}
-
-func ReplaceGlobals(logger *zap.Logger, props *ZapProperties) {
-	_globalL = logger
-	_globalS = logger.Sugar()
-	_globalP = props
-}
-
-var (
-	_globalL, _globalP, _ = newLogger()
-	_globalS              = _globalL.Sugar()
-)
 
 // init initiate MyLogger when this package is imported
 func init() {

@@ -41,27 +41,50 @@ const (
 	TraceLevel
 )
 
+var (
+	_globalL, _globalP, _ = newLogger()
+	_globalS              = _globalL.Sugar()
+)
+
+// L returns the global Logger, which can be reconfigured with ReplaceGlobals.
+// It's safe for concurrent use.
+func L() *Logger {
+	return _globalL
+}
+
+// S returns the global SugaredLogger, which can be reconfigured with
+// ReplaceGlobals. It's safe for concurrent use.
+func S() *zap.SugaredLogger {
+	return _globalS
+}
+
+func ReplaceGlobals(logger *Logger, props *ZapProperties) {
+	_globalL = logger
+	_globalS = logger.Sugar()
+	_globalP = props
+}
+
 // Debug logs a message at DebugLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
-func Debugf(msg string, fields ...zap.Field) {
+func Debug(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Debug(msg, fields...)
 }
 
 // Info logs a message at InfoLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
-func Infof(msg string, fields ...zap.Field) {
+func Info(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Info(msg, fields...)
 }
 
 // Warn logs a message at WarnLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
-func Warnf(msg string, fields ...zap.Field) {
+func Warn(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Warn(msg, fields...)
 }
 
 // Error logs a message at ErrorLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
-func Errorf(msg string, fields ...zap.Field) {
+func Error(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Error(msg, fields...)
 }
 
@@ -69,7 +92,7 @@ func Errorf(msg string, fields ...zap.Field) {
 // at the log site, as well as any fields accumulated on the logger.
 //
 // The logger then panics, even if logging at PanicLevel is disabled.
-func Panicf(msg string, fields ...zap.Field) {
+func Panic(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Panic(msg, fields...)
 }
 
@@ -78,37 +101,37 @@ func Panicf(msg string, fields ...zap.Field) {
 //
 // The logger then calls os.Exit(1), even if logging at FatalLevel is
 // disabled.
-func Fatalf(msg string, fields ...zap.Field) {
+func Fatal(msg string, fields ...zap.Field) {
 	L().WithOptions(zap.AddCallerSkip(1)).Fatal(msg, fields...)
 }
 
 // Debugf uses fmt.Sprintf to log a templated message.
-func Debug(template string, args ...interface{}) {
+func Debugf(template string, args ...interface{}) {
 	S().Debugf(template, args...)
 }
 
 // Infof uses fmt.Sprintf to log a templated message.
-func Info(template string, args ...interface{}) {
+func Infof(template string, args ...interface{}) {
 	S().Infof(template, args...)
 }
 
 // Warnf uses fmt.Sprintf to log a templated message.
-func Warn(template string, args ...interface{}) {
+func Warnf(template string, args ...interface{}) {
 	S().Warnf(template, args...)
 }
 
 // Errorf uses fmt.Sprintf to log a templated message.
-func Error(template string, args ...interface{}) {
+func Errorf(template string, args ...interface{}) {
 	S().Errorf(template, args...)
 }
 
 // Panicf uses fmt.Sprintf to log a templated message, then panics.
-func Panic(template string, args ...interface{}) {
+func Panicf(template string, args ...interface{}) {
 	S().Panicf(template, args...)
 }
 
 // Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
-func Fatal(template string, args ...interface{}) {
+func Fatalf(template string, args ...interface{}) {
 	S().Fatalf(template, args...)
 }
 
