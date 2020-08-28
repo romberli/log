@@ -11,9 +11,9 @@ type Logger struct {
 	SugaredLogger *zap.SugaredLogger
 }
 
-func NewMyLogger(logger zap.Logger) *Logger {
+func NewMyLogger(logger *zap.Logger) *Logger {
 	return &Logger{
-		Logger:        logger,
+		Logger:        *logger,
 		SugaredLogger: logger.Sugar(),
 	}
 }

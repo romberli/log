@@ -28,8 +28,7 @@ import (
 )
 
 const (
-	DefaultLogLevel = "info"
-	DefaultOutput   = "stdout"
+	DefaultOutput = "stdout"
 )
 
 var MyProps *ZapProperties
@@ -193,7 +192,7 @@ func newLogger() (*Logger, *ZapProperties, error) {
 		return nil, nil, errors.Trace(err)
 	}
 
-	MyLogger = NewMyLogger(*zapLogger)
+	MyLogger = NewMyLogger(zapLogger)
 
 	return MyLogger, MyProps, err
 }
@@ -237,7 +236,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 		return nil, nil, errors.Trace(err)
 	}
 
-	MyLogger = NewMyLogger(*zapLogger)
+	MyLogger = NewMyLogger(zapLogger)
 	ReplaceGlobals(MyLogger, MyProps)
 
 	return MyLogger, MyProps, nil
@@ -282,7 +281,7 @@ func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...
 }
 
 // init initiate MyLogger when this package is imported
-func init() {
-	MyLogger, MyProps, _ = newLogger()
-	ReplaceGlobals(MyLogger, MyProps)
-}
+// func init() {
+// 	MyLogger, MyProps, _ = newLogger()
+// 	// ReplaceGlobals(MyLogger, MyProps)
+// }

@@ -19,20 +19,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 const (
+	// default log file name
 	DefaultLogFileName = "run.log"
-	// DefaultLogMaxSize is the default size of log files.
-	DefaultLogMaxSize    = 100 // MB
+	// default maximum log file size
+	DefaultLogMaxSize = 100 // MB
+	// default maximum log file backup days
+	DefaultLogMaxDays = 7
+	// default maximum log file backup number
 	DefaultLogMaxBackups = 5
-	DefaultLogMaxDays    = 7
-	// DefaultLogFormat is the default format of the log.
-	DefaultLogFormat        = "text"
-	defaultLogLevel         = logrus.InfoLevel
+	// default log format in string
+	DefaultLogFormat = "text"
+	// default log level in string
+	DefaultLogLevel         = "info"
 	DefaultDisableTimestamp = false
 )
 
