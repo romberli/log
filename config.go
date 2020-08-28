@@ -129,7 +129,7 @@ func NewConfig(level, format string, fileCfg FileLogConfig) *Config {
 }
 
 // NewConfig creates a Config with file.
-func NewConfigWithFileLog(level, format, fileName string, maxSize, maxDays, maxBackups int) (*Config, error) {
+func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Config, error) {
 	fileCfg, err := NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
 	if err != nil {
 		return nil, err
@@ -178,5 +178,6 @@ func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
 			return zapcore.NewSampler(core, time.Second, int(cfg.Sampling.Initial), int(cfg.Sampling.Thereafter))
 		}))
 	}
+
 	return opts
 }

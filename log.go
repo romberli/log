@@ -199,7 +199,7 @@ func newLogger() (*Logger, *ZapProperties, error) {
 }
 
 // InitLogger initializes a zap logger.
-func InitLogger(cfg *Config) (*Logger, *ZapProperties, error) {
+func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	var (
 		err       error
 		lg        *lumberjack.Logger
@@ -241,6 +241,24 @@ func InitLogger(cfg *Config) (*Logger, *ZapProperties, error) {
 	ReplaceGlobals(MyLogger, MyProps)
 
 	return MyLogger, MyProps, nil
+}
+
+func InitLogger(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Logger, *ZapProperties, error) {
+	logConfig, err := NewConfigWithFileLog(level, format, fileName, maxSize, maxDays, maxBackups)
+	if err != nil {
+		fmt.Printf("got error when creating log config.\n%s", err.Error())
+	}
+
+	return InitLoggerWithConfig(logConfig)
+}
+
+func InitLoggerWithDefaultConfig(fileName string) (*Logger, *ZapProperties, error) {
+	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups)
+	if err != nil {
+		fmt.Printf("got error when creating log config.\n%s", err.Error())
+	}
+
+	return InitLoggerWithConfig(logConfig)
 }
 
 // InitLoggerWithWriteSyncer initializes a zap logger with specified  write syncer.

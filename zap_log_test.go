@@ -193,13 +193,13 @@ func (t *testZapLogSuite) TestTimeEncoder(c *C) {
 	conf := &Config{Level: "debug", File: FileLogConfig{}, DisableTimestamp: true}
 	enc := newZapTextEncoder(conf).(*textEncoder)
 	DefaultTimeEncoder(tt, enc)
-	c.Assert(enc.buf.String(), Equals, `2019/01/11 15:45:41.165 +08:00`)
+	c.Assert(enc.buf.String(), Equals, `2019-01-11 15:45:41.165279`)
 	enc.buf.Reset()
 	utc, err := time.LoadLocation("UTC")
 	c.Assert(err, IsNil)
 	utcTime := tt.In(utc)
 	DefaultTimeEncoder(utcTime, enc)
-	c.Assert(enc.buf.String(), Equals, `2019/01/11 07:45:41.165 +00:00`)
+	c.Assert(enc.buf.String(), Equals, `2019-01-11 07:45:41.165279`)
 }
 
 // See [logger-header]https://github.com/tikv/rfcs/blob/master/text/2018-12-19-unified-log-format.md#log-header-section.
@@ -235,7 +235,7 @@ func (t *testZapLogSuite) TestRotateLog(c *C) {
 			MaxSize:  1,
 		},
 	}
-	lg, _, err := InitLogger(conf)
+	lg, _, err := InitLoggerWithConfig(conf)
 	c.Assert(err, IsNil)
 	var data []byte
 	for i := 1; i <= 1*1024*1024; i++ {

@@ -18,8 +18,7 @@ func newRoutine(t *testing.T, wg *sync.WaitGroup) {
 
 func TestLog(t *testing.T) {
 	var (
-		err error
-		// fileLogConfig *FileLogConfig
+		err       error
 		logConfig *Config
 	)
 
@@ -35,16 +34,14 @@ func TestLog(t *testing.T) {
 
 	// init logger
 	t.Log("==========init logger started==========")
-	// fileLogConfig, err = NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
 	asst.Nil(err, "init file log config failed")
 
-	// logConfig = NewConfig(level, format, *fileLogConfig)
-	logConfig, err = NewConfigWithFileLog(level, format, fileName, maxSize, maxDays, maxBackups)
+	logConfig, err = NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups)
 	if err != nil {
 		fmt.Printf("got error when creating log config.\n%s", err.Error())
 	}
 
-	MyLogger, MyProps, err = InitLogger(logConfig)
+	MyLogger, MyProps, err = InitLoggerWithConfig(logConfig)
 	asst.Nil(err, "init logger failed")
 	t.Log("==========init logger completed==========\n")
 
