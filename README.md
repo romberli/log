@@ -10,14 +10,14 @@ NOTE: use release v1.0.2 and above, do NOT use releases below v1.0.2, because th
 import github.com/romberli/log
 
 func main() {
+    fileName := "/tmp/run.log"
     level := "info"
     format := "text"
-    fileName := "/tmp/run.log"
     maxSize := 100 // MB
     maxDays := 7
     maxBackups := 5
     
-    _, _, err = log.InitLogger(level, format, fileName, maxSize, maxDays, maxBackups)
+    _, _, err = log.InitLogger(fileName, level, format, maxSize, maxDays, maxBackups)
     if err != nil {
         fmt.Printf("init logger failed.\n%s", err.Error())
     }
