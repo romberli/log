@@ -3,7 +3,7 @@
 log is a rotated log, when log file reaches ***maxSize***(default: 100MB), rotated files will be kept for ***maxDays***(default: 7 days) or ***maxBackups***(default: 5) whichever comes first.It wrapped zaplog and lumberjack.
 
 
-NOTE: use release v1.0.2 and above, do NOT use releases below v1.0.2, because the behavior of old and new releases are different, and there is no way to delete old releases, because sum.golang.org will cache the checksum of old releases permanently and can not be cleaned. 
+**NOTE**: use release v1.0.2 and above, do **NOT** use releases below v1.0.2, because the behavior of old and new releases are different, and there is no way to delete old releases, because sum.golang.org will cache the checksum of old releases permanently and can not be cleaned. 
 
 ## how to use
 ```
