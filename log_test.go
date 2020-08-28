@@ -39,6 +39,7 @@ func TestLog(t *testing.T) {
 
 	logConfig = NewConfig(level, format, *fileLogConfig)
 	MyLogger, MyProps, err = InitLogger(logConfig)
+	ReplaceGlobals(MyLogger, MyProps)
 	assert.Nil(err, "init logger failed")
 	t.Log("==========init logger completed==========\n")
 
@@ -46,7 +47,7 @@ func TestLog(t *testing.T) {
 	t.Log("==========print main log entry started==========")
 	Debug("this is main debug message")
 	Info("this is main info message")
-	MyLogger.Warn("this is main warn message")
+	Warnf("this is main warn message %s", "sss")
 	// MyLogger.Error("this is main error message")
 	// MyLogger.Fatal("this is main fatal message")
 	t.Log("==========print main log entry completed==========")

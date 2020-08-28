@@ -19,31 +19,30 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 const (
-	DefaultLogFileName   = "run.log"
-	defaultLogTimeFormat = "2006-01-02T15:04:05.000"
+	DefaultLogFileName = "run.log"
 	// DefaultLogMaxSize is the default size of log files.
 	DefaultLogMaxSize    = 100 // MB
 	DefaultLogMaxBackups = 5
 	DefaultLogMaxDays    = 7
 	// DefaultLogFormat is the default format of the log.
 	DefaultLogFormat        = "text"
-	defaultLogLevel         = log.InfoLevel
+	defaultLogLevel         = logrus.InfoLevel
 	DefaultDisableTimestamp = false
 )
 
 // FileLogConfig serializes file log related config in yaml/json.
 type FileLogConfig struct {
-	// Log filename, leave empty to disable file log.
+	// Log filename.
 	FileName string `yaml:"file-name" json:"file-name"`
-	// Max size for a single file, in MB.
+	// Max size in MB for a log file.
 	MaxSize int `yaml:"max-size" json:"max-size"`
-	// Max log keep days, default is never deleting.
+	// Max log keep days.
 	MaxDays int `yaml:"max-days" json:"max-days"`
 	// Maximum number of old log files to retain.
 	MaxBackups int `yaml:"max-backups" json:"max-backups"`

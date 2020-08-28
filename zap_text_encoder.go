@@ -47,9 +47,11 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+const defaultLogTimeFormat = "2006-01-02 15:04:05.000000"
+
 // DefaultTimeEncoder serializes time.Time to a human-readable formatted string
 func DefaultTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	s := t.Format("2006/01/02 15:04:05.000 -07:00")
+	s := t.Format(defaultLogTimeFormat)
 	if e, ok := enc.(*textEncoder); ok {
 		for _, c := range []byte(s) {
 			e.buf.AppendByte(c)

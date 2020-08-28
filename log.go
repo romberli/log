@@ -21,10 +21,10 @@ import (
 	"strings"
 
 	"github.com/pingcap/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
@@ -32,24 +32,30 @@ const (
 	DefaultOutput   = "stdout"
 )
 
-var MyLogger *zap.Logger
-var MyProps *ZapProperties
+var (
+	MyLogger *zap.Logger
+	MyProps  *ZapProperties
+)
 
-func stringToLogLevel(level string) log.Level {
+func StringToLogLevel(level string) Level {
 	switch strings.ToLower(level) {
+	case "panic":
+		return PanicLevel
 	case "fatal":
-		return log.FatalLevel
+		return FatalLevel
 	case "error":
-		return log.ErrorLevel
+		return ErrorLevel
 	case "warn", "warning":
-		return log.WarnLevel
-	case "debug":
-		return log.DebugLevel
+		return WarnLevel
 	case "info":
-		return log.InfoLevel
+		return InfoLevel
+	case "debug":
+		return DebugLevel
+	case "trace":
+		return TraceLevel
 	}
 
-	return defaultLogLevel
+	return InfoLevel
 }
 
 // textFormatter is for compatibility with ngaut/log
@@ -59,7 +65,7 @@ type textFormatter struct {
 }
 
 // Format implements logrus.Formatter
-func (f *textFormatter) Format(entry *log.Entry) ([]byte, error) {
+func (f *textFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var b *bytes.Buffer
 	if entry.Buffer != nil {
 		b = entry.Buffer
@@ -99,7 +105,7 @@ func (f *textFormatter) Format(entry *log.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func stringToLogFormatter(format string, disableTimestamp bool) log.Formatter {
+func stringToLogFormatter(format string, disableTimestamp bool) logrus.Formatter {
 	switch strings.ToLower(format) {
 	case "text":
 		return &textFormatter{
@@ -127,7 +133,7 @@ func initFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
 		cfg.MaxDays = DefaultLogMaxDays
 	}
 
-	// use lumberjack to logrotate
+	// use lumberjack to rotate log file
 	return &lumberjack.Logger{
 		Filename:   cfg.FileName,
 		MaxSize:    cfg.MaxSize,
@@ -146,7 +152,10 @@ func newLogger() (*zap.Logger, *ZapProperties, error) {
 		close  func()
 	)
 
-	cfg = &Config{Level: DefaultLogLevel, File: FileLogConfig{}}
+	cfg = &Config{
+		Level:  DefaultLogLevel,
+		Format: "text",
+		File:   FileLogConfig{}}
 
 	if stdOut, close, err = zap.Open([]string{DefaultOutput}...); err != nil {
 		close()
@@ -247,4 +256,5 @@ var (
 // init initiate MyLogger when this package is imported
 func init() {
 	MyLogger, MyProps, _ = newLogger()
+	ReplaceGlobals(MyLogger, MyProps)
 }
