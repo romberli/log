@@ -47,7 +47,7 @@ func TestLog(t *testing.T) {
 	t.Log("==========print main log entry started==========")
 	Debug("this is main debug message")
 	Info("this is main info message")
-	Warnf("this is main warn message %s", "sss")
+	Warn("this is main warn message %s", "sss")
 	// MyLogger.Error("this is main error message")
 	// MyLogger.Fatal("this is main fatal message")
 	t.Log("==========print main log entry completed==========")
