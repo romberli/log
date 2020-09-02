@@ -14,11 +14,14 @@
 package log
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -39,6 +42,11 @@ const (
 	DefaultDisableTimestamp = false
 )
 
+var (
+	ErrEmptyLogFileName    = "Log file name could NOT be an empty string."
+	ErrNotValidLogFileName = "Log file name must be either unix or windows path format, %s is not valid."
+)
+
 // FileLogConfig serializes file log related config in yaml/json.
 type FileLogConfig struct {
 	// Log filename.
@@ -53,6 +61,29 @@ type FileLogConfig struct {
 
 // NewFileLogConfig creates a FileLogConfig.
 func NewFileLogConfig(fileName string, maxSize, maxDays, maxBackups int) (fileLogConfig *FileLogConfig, err error) {
+	fileName = strings.TrimSpace(fileName)
+
+	if fileName == "" {
+		return nil, errors.New(fmt.Sprintf(ErrEmptyLogFileName))
+	}
+
+	valid, _ := govalidator.IsFilePath(fileName)
+	if !valid {
+		return nil, errors.New(fmt.Sprintf(ErrNotValidLogFileName, fileName))
+	}
+
+	fileLogConfig = &FileLogConfig{
+		FileName:   fileName,
+		MaxSize:    maxSize,
+		MaxDays:    maxDays,
+		MaxBackups: maxBackups,
+	}
+
+	return fileLogConfig, nil
+}
+
+// NewFileLogConfigWithDefault creates a FileLogConfig, if fileName is empty, it will use default file name.
+func NewFileLogConfigWithDefaultFileName(fileName string, maxSize, maxDays, maxBackups int) (fileLogConfig *FileLogConfig, err error) {
 	var baseDir string
 	var logDir string
 
