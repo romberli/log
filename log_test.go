@@ -41,7 +41,7 @@ func TestLog(t *testing.T) {
 		fmt.Printf("got error when creating log config.\n%s", err.Error())
 	}
 
-	MyLogger, MyProps, err = InitLoggerWithConfig(logConfig)
+	MyLogger, _, err := InitLoggerWithConfig(logConfig)
 	asst.Nil(err, "init logger failed")
 	t.Log("==========init logger completed==========\n")
 
