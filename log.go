@@ -31,6 +31,11 @@ const (
 	DefaultOutput = "stdout"
 )
 
+var (
+	MyLogger *Logger
+	MyProps  *ZapProperties
+)
+
 func StringToLogLevel(level string) Level {
 	switch strings.ToLower(level) {
 	case "panic":

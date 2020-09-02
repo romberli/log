@@ -4,8 +4,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var MyLogger *Logger
-
 type Logger struct {
 	zap.Logger
 	SugaredLogger *zap.SugaredLogger
