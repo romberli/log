@@ -32,8 +32,9 @@ const (
 )
 
 var (
-	MyLogger *Logger
-	MyProps  *ZapProperties
+	MyLogger    *Logger
+	MyZapLogger *zap.Logger
+	MyProps     *ZapProperties
 )
 
 func StringToLogLevel(level string) Level {
@@ -186,7 +187,7 @@ func newLogger() (*Logger, *ZapProperties, error) {
 		return nil, nil, errors.Trace(err)
 	}
 
-	zapLogger, MyProps, err := InitLoggerWithWriteSyncer(
+	MyZapLogger, MyProps, err = InitLoggerWithWriteSyncer(
 		cfg, stdOut, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.AddCaller(),
 		zap.Development(),
@@ -195,7 +196,7 @@ func newLogger() (*Logger, *ZapProperties, error) {
 		return nil, nil, errors.Trace(err)
 	}
 
-	MyLogger = NewMyLogger(zapLogger)
+	MyLogger = NewMyLogger(MyZapLogger)
 
 	return MyLogger, MyProps, err
 }
