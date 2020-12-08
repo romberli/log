@@ -201,7 +201,7 @@ func newLogger() (*Logger, *ZapProperties, error) {
 	return MyLogger, MyProps, err
 }
 
-// InitLogger initializes a zap logger.
+// InitLoggerWithConfig initializes a zap logger with config.
 func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	var (
 		err       error
@@ -246,6 +246,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	return MyLogger, MyProps, nil
 }
 
+// InitLogger initiate logger with given options
 func InitLogger(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Logger, *ZapProperties, error) {
 	logConfig, err := NewConfigWithFileLog(level, format, fileName, maxSize, maxDays, maxBackups)
 	if err != nil {
@@ -255,6 +256,7 @@ func InitLogger(fileName, level, format string, maxSize, maxDays, maxBackups int
 	return InitLoggerWithConfig(logConfig)
 }
 
+// InitLogger initiate logger with default options
 func InitLoggerWithDefaultConfig(fileName string) (*Logger, *ZapProperties, error) {
 	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups)
 	if err != nil {
@@ -285,7 +287,7 @@ func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...
 }
 
 // init initiate MyLogger when this package is imported
-// func init() {
-// 	MyLogger, MyProps, _ = newLogger()
-// 	// ReplaceGlobals(MyLogger, MyProps)
-// }
+func init() {
+	MyLogger, MyProps, _ = newLogger()
+	ReplaceGlobals(MyLogger, MyProps)
+}
