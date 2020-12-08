@@ -46,3 +46,12 @@ func main() {
     log.Warnf("this is warning message with variable message: %s", message")
 }
 ```
+or specify nothing and log to stdout
+```
+import github.com/romberli/log
+
+func main() {
+    log.Info("this is info message.")
+}
+```
+and you'll see the message in the console
