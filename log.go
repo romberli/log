@@ -248,7 +248,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 
 // InitLogger initiate logger with given options
 func InitLogger(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Logger, *ZapProperties, error) {
-	logConfig, err := NewConfigWithFileLog(level, format, fileName, maxSize, maxDays, maxBackups)
+	logConfig, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups)
 	if err != nil {
 		fmt.Printf("got error when creating log config.\n%s", err.Error())
 	}
