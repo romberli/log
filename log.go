@@ -189,7 +189,7 @@ func newLogger() (*Logger, *ZapProperties, error) {
 
 	MyZapLogger, MyProps, err = InitLoggerWithWriteSyncer(
 		cfg, stdOut, zap.AddStacktrace(zapcore.ErrorLevel),
-		zap.AddCaller(),
+		zap.AddCallerSkip(DefaultCallerSkip),
 		zap.Development(),
 	)
 	if err != nil {

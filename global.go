@@ -21,6 +21,7 @@ import (
 type Level uint32
 
 const (
+	DefaultCallerSkip = 3
 	// PanicLevel level, highest level of severity. Logs and then calls panic with the
 	// message passed to Debug, Info, ...
 	PanicLevel Level = iota
