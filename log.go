@@ -189,7 +189,6 @@ func newLogger() (*Logger, *ZapProperties, error) {
 
 	MyZapLogger, MyProps, err = InitLoggerWithWriteSyncer(
 		cfg, stdOut, zap.AddStacktrace(zapcore.ErrorLevel),
-		zap.AddCallerSkip(DefaultCallerSkip),
 		zap.Development(),
 	)
 	if err != nil {
@@ -209,6 +208,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 		stdOut    zapcore.WriteSyncer
 		closeFunc func()
 		output    zapcore.WriteSyncer
+		zapLogger *zap.Logger
 	)
 
 	if len(cfg.File.FileName) > 0 {
@@ -231,9 +231,8 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 		output = stdOut
 	}
 
-	zapLogger, MyProps, err := InitLoggerWithWriteSyncer(
+	zapLogger, MyProps, err = InitLoggerWithWriteSyncer(
 		cfg, output, zap.AddStacktrace(zapcore.ErrorLevel),
-		zap.AddCaller(),
 		zap.Development(),
 	)
 	if err != nil {

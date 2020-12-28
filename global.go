@@ -21,7 +21,7 @@ import (
 type Level uint32
 
 const (
-	DefaultCallerSkip = 3
+	DefaultCallerSkip = 1
 	// PanicLevel level, highest level of severity. Logs and then calls panic with the
 	// message passed to Debug, Info, ...
 	PanicLevel Level = iota
@@ -44,7 +44,7 @@ const (
 
 var (
 	_globalL, _globalP, _ = newLogger()
-	_globalS              = _globalL.Sugar()
+	_globalS              = _globalL.SugaredLogger
 )
 
 // L returns the global Logger, which can be reconfigured with ReplaceGlobals.
@@ -60,7 +60,7 @@ func S() *zap.SugaredLogger {
 }
 
 func ReplaceGlobals(logger *Logger, props *ZapProperties) {
-	_globalL = logger
+	_globalL = logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip))
 	_globalS = logger.Sugar()
 	_globalP = props
 }
@@ -68,25 +68,25 @@ func ReplaceGlobals(logger *Logger, props *ZapProperties) {
 // Debug logs a message at DebugLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Debug(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Debug(msg, fields...)
+	L().Debug(msg, fields...)
 }
 
 // Info logs a message at InfoLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Info(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Info(msg, fields...)
+	L().Info(msg, fields...)
 }
 
 // Warn logs a message at WarnLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Warn(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Warn(msg, fields...)
+	L().Warn(msg, fields...)
 }
 
 // Error logs a message at ErrorLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Error(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Error(msg, fields...)
+	L().Error(msg, fields...)
 }
 
 // Panic logs a message at PanicLevel. The message includes any fields passed
@@ -94,7 +94,7 @@ func Error(msg string, fields ...zap.Field) {
 //
 // The logger then panics, even if logging at PanicLevel is disabled.
 func Panic(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Panic(msg, fields...)
+	L().Panic(msg, fields...)
 }
 
 // Fatal logs a message at FatalLevel. The message includes any fields passed
@@ -103,7 +103,7 @@ func Panic(msg string, fields ...zap.Field) {
 // The logger then calls os.Exit(1), even if logging at FatalLevel is
 // disabled.
 func Fatal(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Fatal(msg, fields...)
+	L().Fatal(msg, fields...)
 }
 
 // Debugf uses fmt.Sprintf to log a templated message.
@@ -139,7 +139,7 @@ func Fatalf(template string, args ...interface{}) {
 // With creates a child logger and adds structured context to it.
 // Fields added to the child don't affect the parent, and vice versa.
 func With(fields ...zap.Field) *zap.Logger {
-	return L().WithOptions(zap.AddCallerSkip(1)).With(fields...)
+	return L().zapLogger.With(fields...)
 }
 
 // SetLevel alters the logging level.

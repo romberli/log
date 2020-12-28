@@ -5,15 +5,67 @@ import (
 )
 
 type Logger struct {
-	zap.Logger
+	zapLogger     *zap.Logger
 	SugaredLogger *zap.SugaredLogger
 }
 
 func NewMyLogger(logger *zap.Logger) *Logger {
 	return &Logger{
-		Logger:        *logger,
+		zapLogger:     logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)),
+		SugaredLogger: logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)).Sugar(),
+	}
+}
+
+func (logger *Logger) WithOptions(opts ...zap.Option) *Logger {
+	return &Logger{
+		zapLogger:     logger.zapLogger.WithOptions(opts...),
 		SugaredLogger: logger.Sugar(),
 	}
+}
+
+func (logger *Logger) Sugar() *zap.SugaredLogger {
+	return logger.zapLogger.Sugar()
+}
+
+// Debug logs a message at DebugLevel. The message includes any fields passed
+// at the log site, as well as any fields accumulated on the logger.
+func (logger *Logger) Debug(msg string, fields ...zap.Field) {
+	logger.zapLogger.Debug(msg, fields...)
+}
+
+// Info logs a message at InfoLevel. The message includes any fields passed
+// at the log site, as well as any fields accumulated on the logger.
+func (logger *Logger) Info(msg string, fields ...zap.Field) {
+	logger.zapLogger.Info(msg, fields...)
+}
+
+// Warn logs a message at WarnLevel. The message includes any fields passed
+// at the log site, as well as any fields accumulated on the logger.
+func (logger *Logger) Warn(msg string, fields ...zap.Field) {
+	logger.zapLogger.Warn(msg, fields...)
+}
+
+// Error logs a message at ErrorLevel. The message includes any fields passed
+// at the log site, as well as any fields accumulated on the logger.
+func (logger *Logger) Error(msg string, fields ...zap.Field) {
+	logger.zapLogger.Error(msg, fields...)
+}
+
+// Panic logs a message at PanicLevel. The message includes any fields passed
+// at the log site, as well as any fields accumulated on the logger.
+//
+// The logger then panics, even if logging at PanicLevel is disabled.
+func (logger *Logger) Panic(msg string, fields ...zap.Field) {
+	logger.zapLogger.Panic(msg, fields...)
+}
+
+// Fatal logs a message at FatalLevel. The message includes any fields passed
+// at the log site, as well as any fields accumulated on the logger.
+//
+// The logger then calls os.Exit(1), even if logging at FatalLevel is
+// disabled.
+func (logger *Logger) Fatal(msg string, fields ...zap.Field) {
+	logger.zapLogger.Fatal(msg, fields...)
 }
 
 // Debugf uses fmt.Sprintf to log a templated message.
