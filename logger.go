@@ -5,8 +5,9 @@ import (
 )
 
 type Logger struct {
-	zapLogger     *zap.Logger
-	SugaredLogger *zap.SugaredLogger
+	DisableDoubleQuotes bool
+	zapLogger           *zap.Logger
+	SugaredLogger       *zap.SugaredLogger
 }
 
 func NewMyLogger(logger *zap.Logger) *Logger {
@@ -14,6 +15,10 @@ func NewMyLogger(logger *zap.Logger) *Logger {
 		zapLogger:     logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)),
 		SugaredLogger: logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)).Sugar(),
 	}
+}
+
+func (logger *Logger) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
+	logger.zapLogger.Core().(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
 }
 
 func (logger *Logger) WithOptions(opts ...zap.Option) *Logger {

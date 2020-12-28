@@ -132,8 +132,9 @@ type textEncoder struct {
 	disableErrorVerbose bool
 
 	// for encoding generic values by reflection
-	reflectBuf *buffer.Buffer
-	reflectEnc *json.Encoder
+	reflectBuf          *buffer.Buffer
+	reflectEnc          *json.Encoder
+	DisableDoubleQuotes bool
 }
 
 // NewTextEncoder creates a fast, low-allocation Text encoder. The encoder
@@ -161,7 +162,12 @@ func NewTextEncoder(cfg *Config) zapcore.Encoder {
 		buf:                 _pool.Get(),
 		spaced:              false,
 		disableErrorVerbose: cfg.DisableErrorVerbose,
+		DisableDoubleQuotes: cfg.DisableDoubleQuotes,
 	}
+}
+
+func (enc *textEncoder) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
+	enc.DisableDoubleQuotes = disableDoubleQuotes
 }
 
 func (enc *textEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
@@ -383,7 +389,7 @@ func (enc *textEncoder) AppendUintptr(v uintptr)            { enc.AppendUint64(u
 
 func (enc *textEncoder) Clone() zapcore.Encoder {
 	clone := enc.cloned()
-	clone.buf.Write(enc.buf.Bytes())
+	_, _ = clone.buf.Write(enc.buf.Bytes())
 	return clone
 }
 
@@ -394,6 +400,7 @@ func (enc *textEncoder) cloned() *textEncoder {
 	clone.openNamespaces = enc.openNamespaces
 	clone.disableErrorVerbose = enc.disableErrorVerbose
 	clone.buf = _pool.Get()
+	clone.DisableDoubleQuotes = enc.DisableDoubleQuotes
 	return clone
 }
 
@@ -455,7 +462,7 @@ func (enc *textEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (
 	}
 	if enc.buf.Len() > 0 {
 		final.buf.AppendByte(' ')
-		final.buf.Write(enc.buf.Bytes())
+		_, _ = final.buf.Write(enc.buf.Bytes())
 	}
 	final.addFields(fields)
 	final.closeOpenNamespaces()
@@ -540,10 +547,11 @@ func (enc *textEncoder) safeAddString(s string) {
 
 // safeAddStringWithQuote will automatically add quotoes.
 func (enc *textEncoder) safeAddStringWithQuote(s string) {
-	if !enc.needDoubleQuotes(s) {
+	if enc.DisableDoubleQuotes || !enc.needDoubleQuotes(s) {
 		enc.safeAddString(s)
 		return
 	}
+
 	enc.buf.AppendByte('"')
 	enc.safeAddString(s)
 	enc.buf.AppendByte('"')

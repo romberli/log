@@ -176,7 +176,8 @@ func newLogger() (*Logger, *ZapProperties, error) {
 	cfg = &Config{
 		Level:  DefaultLogLevel,
 		Format: DefaultLogFormat,
-		File:   FileLogConfig{}}
+		File:   FileLogConfig{},
+	}
 
 	stdOut, closeFunc, err = zap.Open([]string{DefaultOutput}...)
 	if err != nil {

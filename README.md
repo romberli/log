@@ -55,3 +55,10 @@ func main() {
 }
 ```
 and you'll see the message in the console
+
+
+## customize
+if you don't like double-quotes in message content, you could disable it.
+```
+log.SetDisableDoubleQuotes(true)
+```

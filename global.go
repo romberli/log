@@ -65,6 +65,12 @@ func ReplaceGlobals(logger *Logger, props *ZapProperties) {
 	_globalP = props
 }
 
+func SetDisableDoubleQuotes(disableDoubleQuotes bool) {
+	_globalL.SetDisableDoubleQuotes(disableDoubleQuotes)
+	_globalS = _globalL.Sugar()
+	_globalP.Core.(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
+}
+
 // Debug logs a message at DebugLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Debug(msg string, fields ...zap.Field) {

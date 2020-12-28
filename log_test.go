@@ -55,20 +55,22 @@ func TestLog(t *testing.T) {
 	MyLogger.Warnf("this is mylogger main warn message %s", "warnf")
 	MyLogger.Error("this is main mylogger error message")
 	MyLogger.Errorf("this is mylogger main error message %s", "errorf")
-	MyLogger.Fatal("this is main mylogger fatal message")
-	MyLogger.Fatalf("this is mylogger main fatal message %s", "fatalf")
-	// MyLogger.Fatal("this is main fatal message")
+	// MyLogger.Fatal("this is main mylogger fatal message")
+	// MyLogger.Fatalf("this is mylogger main fatal message %s", "fatalf")
 	t.Log("==========print main log entry completed==========")
 
 	t.Log("==========print goroutine log entry started==========")
 
 	wg.Add(1)
+	SetDisableDoubleQuotes(true)
 	go func() {
 		defer wg.Done()
 		t.Log("goroutine test")
 		Debug("this is goroutine debug message")
-		MyLogger.Info("this is goroutine info message")
-		MyLogger.Warn("this is goroutine warn message")
+		MyLogger.SetDisableDoubleQuotes(false)
+		MyLogger.Info("this is goroutine mylogger info message")
+		MyLogger.Warn("this is goroutine mylogger warn message")
+		Info("this is goroutine info message")
 	}()
 
 	wg.Add(1)

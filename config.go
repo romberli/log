@@ -38,8 +38,9 @@ const (
 	// default log format in string
 	DefaultLogFormat = "text"
 	// default log level in string
-	DefaultLogLevel         = "info"
-	DefaultDisableTimestamp = false
+	DefaultLogLevel            = "info"
+	DefaultDisableTimestamp    = false
+	DefaultDisableDoubleQuotes = false
 )
 
 var (
@@ -134,6 +135,8 @@ type Config struct {
 	// Development puts the logger in development mode, which changes the
 	// behavior of DPanicLevel and takes stacktraces more liberally.
 	Development bool `yaml:"development" json:"development"`
+	// DisableDoubleQuote disables adding double-quotes to log entry
+	DisableDoubleQuotes bool
 	// DisableCaller stops annotating logs with the calling function's file
 	// name and line number. By default, all logs are annotated.
 	DisableCaller bool `yaml:"disable-caller" json:"disable-caller"`
@@ -155,14 +158,15 @@ type Config struct {
 // NewConfig creates a Config.
 func NewConfig(level, format string, fileCfg FileLogConfig) *Config {
 	return &Config{
-		Level:            level,
-		Format:           format,
-		DisableTimestamp: DefaultDisableTimestamp,
-		File:             fileCfg,
+		Level:               level,
+		Format:              format,
+		DisableTimestamp:    DefaultDisableTimestamp,
+		File:                fileCfg,
+		DisableDoubleQuotes: DefaultDisableDoubleQuotes,
 	}
 }
 
-// NewConfig creates a Config with file.
+// NewConfigWithFileLog creates a Config with file.
 func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Config, error) {
 	fileCfg, err := NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
 	if err != nil {
@@ -170,22 +174,16 @@ func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxB
 	}
 
 	return &Config{
-		Level:            level,
-		Format:           format,
-		DisableTimestamp: DefaultDisableTimestamp,
-		File:             *fileCfg,
+		Level:               level,
+		Format:              format,
+		DisableTimestamp:    DefaultDisableTimestamp,
+		File:                *fileCfg,
+		DisableDoubleQuotes: DefaultDisableDoubleQuotes,
 	}, nil
 }
 
-// ZapProperties records some information about zap.
-type ZapProperties struct {
-	Core   zapcore.Core
-	Syncer zapcore.WriteSyncer
-	Level  zap.AtomicLevel
-}
-
-func newZapTextEncoder(cfg *Config) zapcore.Encoder {
-	return NewTextEncoder(cfg)
+func (cfg *Config) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
+	cfg.DisableDoubleQuotes = disableDoubleQuotes
 }
 
 func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
@@ -214,4 +212,15 @@ func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
 	}
 
 	return opts
+}
+
+// ZapProperties records some information about zap.
+type ZapProperties struct {
+	Core   zapcore.Core
+	Syncer zapcore.WriteSyncer
+	Level  zap.AtomicLevel
+}
+
+func newZapTextEncoder(cfg *Config) zapcore.Encoder {
+	return NewTextEncoder(cfg)
 }
