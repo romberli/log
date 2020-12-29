@@ -582,7 +582,7 @@ func (enc *textEncoder) safeAddByteString(s []byte) {
 			i++
 			continue
 		}
-		enc.buf.Write(s[i : i+size])
+		_, _ = enc.buf.Write(s[i : i+size])
 		i += size
 	}
 }
