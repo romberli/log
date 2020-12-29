@@ -4,12 +4,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// Logger wraps zap logger and sugared logger
 type Logger struct {
 	DisableDoubleQuotes bool
 	zapLogger           *zap.Logger
 	SugaredLogger       *zap.SugaredLogger
 }
 
+// NewMyLogger returns *Logger
 func NewMyLogger(logger *zap.Logger) *Logger {
 	return &Logger{
 		zapLogger:     logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)),
@@ -17,10 +19,12 @@ func NewMyLogger(logger *zap.Logger) *Logger {
 	}
 }
 
+// SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (logger *Logger) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	logger.zapLogger.Core().(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
 }
 
+// WithOptions returns a new *Logger with specified options
 func (logger *Logger) WithOptions(opts ...zap.Option) *Logger {
 	return &Logger{
 		zapLogger:     logger.zapLogger.WithOptions(opts...),
@@ -28,6 +32,7 @@ func (logger *Logger) WithOptions(opts ...zap.Option) *Logger {
 	}
 }
 
+// Sugar returns a new sugared logger
 func (logger *Logger) Sugar() *zap.SugaredLogger {
 	return logger.zapLogger.Sugar()
 }

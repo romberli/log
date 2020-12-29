@@ -182,10 +182,12 @@ func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxB
 	}, nil
 }
 
+// SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (cfg *Config) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	cfg.DisableDoubleQuotes = disableDoubleQuotes
 }
 
+// buildOptions returns []zap.Option with options of config
 func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
 	opts := []zap.Option{zap.ErrorOutput(errSink)}
 
@@ -221,6 +223,7 @@ type ZapProperties struct {
 	Level  zap.AtomicLevel
 }
 
+// newZapTextEncoder returns zapcore.Encoder with given config
 func newZapTextEncoder(cfg *Config) zapcore.Encoder {
 	return NewTextEncoder(cfg)
 }
