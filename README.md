@@ -58,7 +58,11 @@ and you'll see the message in the console
 
 
 ## customize
-if you don't like double-quotes in message content, you could disable it.
+if you don't want double-quotes in message content, you can disable it.
 ```
 log.SetDisableDoubleQuotes(true)
+```
+if you don't want to escape some special characters(\n,\r,\t) in the message content, you can disable it.
+```
+log.SetDisableEscape(true)
 ```
