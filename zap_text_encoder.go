@@ -135,6 +135,7 @@ type textEncoder struct {
 	reflectBuf          *buffer.Buffer
 	reflectEnc          *json.Encoder
 	DisableDoubleQuotes bool
+	DisableEscape       bool
 }
 
 // NewTextEncoder creates a fast, low-allocation Text encoder. The encoder
@@ -163,11 +164,18 @@ func NewTextEncoder(cfg *Config) zapcore.Encoder {
 		spaced:              false,
 		disableErrorVerbose: cfg.DisableErrorVerbose,
 		DisableDoubleQuotes: cfg.DisableDoubleQuotes,
+		DisableEscape:       cfg.DisableEscape,
 	}
 }
 
+// SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (enc *textEncoder) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	enc.DisableDoubleQuotes = disableDoubleQuotes
+}
+
+// SetDisableEscape disables escaping special characters of log content like \n,\r...
+func (enc *textEncoder) SetDisableEscape(disableEscape bool) {
+	enc.DisableEscape = disableEscape
 }
 
 func (enc *textEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
@@ -401,6 +409,7 @@ func (enc *textEncoder) cloned() *textEncoder {
 	clone.disableErrorVerbose = enc.disableErrorVerbose
 	clone.buf = _pool.Get()
 	clone.DisableDoubleQuotes = enc.DisableDoubleQuotes
+	clone.DisableEscape = enc.DisableEscape
 	return clone
 }
 
@@ -468,7 +477,11 @@ func (enc *textEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (
 	final.closeOpenNamespaces()
 	if ent.Stack != "" && final.StacktraceKey != "" {
 		final.beginQuoteFiled()
-		final.AddString(final.StacktraceKey, ent.Stack)
+		stack := ent.Stack
+		if enc.DisableEscape {
+			stack = fmt.Sprintf("\n%s\n", ent.Stack)
+		}
+		final.AddString(final.StacktraceKey, stack)
 		final.endQuoteFiled()
 	}
 
@@ -604,15 +617,26 @@ func (enc *textEncoder) tryAddRuneSelf(b byte) bool {
 		enc.buf.AppendByte('\\')
 		enc.buf.AppendByte(b)
 	case '\n':
-		enc.buf.AppendByte('\\')
-		enc.buf.AppendByte('n')
+		if !enc.DisableEscape {
+			enc.buf.AppendByte('\\')
+			enc.buf.AppendByte('n')
+		} else {
+			enc.buf.AppendByte(b)
+		}
 	case '\r':
-		enc.buf.AppendByte('\\')
-		enc.buf.AppendByte('r')
+		if !enc.DisableEscape {
+			enc.buf.AppendByte('\\')
+			enc.buf.AppendByte('r')
+		} else {
+			enc.buf.AppendByte(b)
+		}
 	case '\t':
-		enc.buf.AppendByte('\\')
-		enc.buf.AppendByte('t')
-
+		if !enc.DisableEscape {
+			enc.buf.AppendByte('\\')
+			enc.buf.AppendByte('t')
+		} else {
+			enc.buf.AppendByte(b)
+		}
 	default:
 		// Encode bytes < 0x20, except for the escape sequences above.
 		enc.buf.AppendString(`\u00`)

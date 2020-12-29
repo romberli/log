@@ -14,6 +14,7 @@ func newRoutine(t *testing.T, wg *sync.WaitGroup) {
 	Debug("this is new routine debug message")
 	Info("this is new routine info message")
 	Warn("this is new routine warn message")
+	Errorf("this is new routine error message.\n%s", "errorf")
 }
 
 func TestLog(t *testing.T) {
@@ -42,13 +43,15 @@ func TestLog(t *testing.T) {
 	}
 
 	MyLogger, MyProps, err = InitLoggerWithConfig(logConfig)
+	SetDisableEscape(true)
+
 	asst.Nil(err, "init logger failed")
 	t.Log("==========init logger completed==========\n")
 
 	// print log
 	t.Log("==========print main log entry started==========")
 	Debug("this is main debug message")
-	Info("this is main info message")
+	Info("this is main \ninfo message")
 	Infof("this is main info message %s", "infof")
 	Errorf("this main error message %s", "errorf")
 	MyLogger.Warn("this is mylogger main warn message")
@@ -61,13 +64,14 @@ func TestLog(t *testing.T) {
 
 	t.Log("==========print goroutine log entry started==========")
 
-	wg.Add(1)
 	SetDisableDoubleQuotes(true)
+	// SetDisableEscape(true)
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		t.Log("goroutine test")
 		Debug("this is goroutine debug message")
-		MyLogger.SetDisableDoubleQuotes(false)
+		// MyLogger.SetDisableDoubleQuotes(false)
 		MyLogger.Info("this is goroutine mylogger info message")
 		MyLogger.Warn("this is goroutine mylogger warn message")
 		Info("this is goroutine info message")

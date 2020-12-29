@@ -41,6 +41,7 @@ const (
 	DefaultLogLevel            = "info"
 	DefaultDisableTimestamp    = false
 	DefaultDisableDoubleQuotes = false
+	DefaultDisableEscape       = false
 )
 
 var (
@@ -137,6 +138,8 @@ type Config struct {
 	Development bool `yaml:"development" json:"development"`
 	// DisableDoubleQuote disables adding double-quotes to log entry
 	DisableDoubleQuotes bool
+	// DisableEscape disables escaping special characters like \n,\r...
+	DisableEscape bool
 	// DisableCaller stops annotating logs with the calling function's file
 	// name and line number. By default, all logs are annotated.
 	DisableCaller bool `yaml:"disable-caller" json:"disable-caller"`
@@ -163,6 +166,7 @@ func NewConfig(level, format string, fileCfg FileLogConfig) *Config {
 		DisableTimestamp:    DefaultDisableTimestamp,
 		File:                fileCfg,
 		DisableDoubleQuotes: DefaultDisableDoubleQuotes,
+		DisableEscape:       DefaultDisableEscape,
 	}
 }
 
@@ -179,12 +183,18 @@ func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxB
 		DisableTimestamp:    DefaultDisableTimestamp,
 		File:                *fileCfg,
 		DisableDoubleQuotes: DefaultDisableDoubleQuotes,
+		DisableEscape:       DefaultDisableEscape,
 	}, nil
 }
 
 // SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (cfg *Config) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	cfg.DisableDoubleQuotes = disableDoubleQuotes
+}
+
+// SetDisableEscape disables escaping special characters of log content like \n,\r...
+func (cfg *Config) SetDisableEscape(disableEscape bool) {
+	cfg.DisableEscape = disableEscape
 }
 
 // buildOptions returns []zap.Option with options of config

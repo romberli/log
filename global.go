@@ -60,16 +60,23 @@ func S() *zap.SugaredLogger {
 	return _globalS
 }
 
+// ReplaceGlobals replaces global logger with given logger and properties
 func ReplaceGlobals(logger *Logger, props *ZapProperties) {
 	_globalL = logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip))
 	_globalS = logger.Sugar()
 	_globalP = props
 }
 
+// SetDisableDoubleQuotes disables wrapping log content with double quotes of global logger
 func SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	_globalL.SetDisableDoubleQuotes(disableDoubleQuotes)
-	_globalS = _globalL.Sugar()
 	_globalP.Core.(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
+}
+
+// SetDisableDoubleQuotes disables wrapping log content with double quotes of global logger
+func SetDisableEscape(disableEscape bool) {
+	_globalL.SetDisableEscape(disableEscape)
+	_globalP.Core.(*textIOCore).SetDisableEscape(disableEscape)
 }
 
 // Debug logs a message at DebugLevel. The message includes any fields passed

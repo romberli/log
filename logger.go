@@ -24,6 +24,11 @@ func (logger *Logger) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	logger.zapLogger.Core().(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
 }
 
+// SetDisableEscape disables escaping special characters of log content like \n,\r...
+func (logger *Logger) SetDisableEscape(disableEscape bool) {
+	logger.zapLogger.Core().(*textIOCore).SetDisableEscape(disableEscape)
+}
+
 // WithOptions returns a new *Logger with specified options
 func (logger *Logger) WithOptions(opts ...zap.Option) *Logger {
 	return &Logger{

@@ -76,6 +76,12 @@ func (c *textIOCore) clone() *textIOCore {
 	}
 }
 
+// SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (c *textIOCore) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	c.enc.SetDisableDoubleQuotes(disableDoubleQuotes)
+}
+
+// SetDisableEscape disables escaping special characters of log content like \n,\r...
+func (c *textIOCore) SetDisableEscape(disableEscape bool) {
+	c.enc.SetDisableEscape(disableEscape)
 }
