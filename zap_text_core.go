@@ -39,6 +39,10 @@ func (c *textIOCore) With(fields []zapcore.Field) zapcore.Core {
 	return clone
 }
 
+func (c *textIOCore) Syncer() zapcore.WriteSyncer {
+	return c.out
+}
+
 func (c *textIOCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
 		return ce.AddCore(ent, c)

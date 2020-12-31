@@ -269,6 +269,14 @@ func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...
 	return lg, r, nil
 }
 
+func CloneLogger(logger *Logger) *Logger {
+	c := &Logger{}
+	core := logger.zapLogger.Core().(*textIOCore).clone()
+	c.zapLogger = logger.zapLogger.CloneWithNewCore(core)
+	c.SugaredLogger = c.zapLogger.Sugar()
+	return c
+}
+
 // init initiate MyLogger when this package is imported
 func init() {
 	MyLogger, MyProps, _ = NewLogger()

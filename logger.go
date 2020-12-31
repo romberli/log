@@ -7,9 +7,8 @@ import (
 
 // Logger wraps zap logger and sugared logger
 type Logger struct {
-	DisableDoubleQuotes bool
-	zapLogger           *zap.Logger
-	SugaredLogger       *zap.SugaredLogger
+	zapLogger     *zap.Logger
+	SugaredLogger *zap.SugaredLogger
 }
 
 // NewMyLogger returns *Logger
@@ -18,6 +17,10 @@ func NewMyLogger(logger *zap.Logger) *Logger {
 		zapLogger:     logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)),
 		SugaredLogger: logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)).Sugar(),
 	}
+}
+
+func (logger *Logger) Clone() *Logger {
+	return CloneLogger(logger)
 }
 
 // SetDisableDoubleQuotes disables wrapping log content with double quotes
@@ -33,6 +36,13 @@ func (logger *Logger) SetDisableEscape(disableEscape bool) {
 // AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
 func (logger *Logger) AddWriteSyncer(ws zapcore.WriteSyncer) {
 	logger.zapLogger.Core().(*textIOCore).AddWriteSyncer(ws)
+}
+
+// AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
+func (logger *Logger) CloneAndAddWriteSyncer(ws zapcore.WriteSyncer) *Logger {
+	c := logger.Clone()
+	c.AddWriteSyncer(ws)
+	return c
 }
 
 // WithOptions returns a new *Logger with specified options

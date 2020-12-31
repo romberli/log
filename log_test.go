@@ -86,6 +86,8 @@ func TestLog(t *testing.T) {
 
 	t.Log("==========add stdout to logger started==========")
 	stdoutSyncer := NewStdoutWriteSyncer()
+	MyLogger.CloneAndAddWriteSyncer(NewStdoutWriteSyncer()).Info("test CloneAndAddWriteSyncer()")
+	MyLogger.Info("mylogger info message after test CloneAndAddWriteSyncer, this should not be printed.")
 	AddWriteSyncer(stdoutSyncer)
 	Info("this is main info message which prints to stdout")
 	Error("this is main error message which prints to stdout")
