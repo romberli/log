@@ -66,7 +66,15 @@ if you don't want to escape some special characters(\n,\r,\t) in the message con
 ```
 log.SetDisableEscape(true)
 ```
-if you want to add another output to current logger
+if you want to add another output to current logger, for example: add stdout to current file logger
 ```
-log.
+log.AddWriteSyncer(log.NewWriteSyncer(os.stdout))
+```
+alternatively
+```
+log.AddWriteSyncer(log.NewStdoutWriteSyncer())
+```
+this impacts globally, so if you want to add new output temporally, you can clone a temporal logger and add new output to the new logger.
+```
+log.Clone().AddWriteSyncer(log.NewStdoutWriteSyncer()).Info("this is cloned logger message")
 ```

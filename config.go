@@ -219,7 +219,7 @@ func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
 
 	if cfg.Sampling != nil {
 		opts = append(opts, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-			return zapcore.NewSampler(core, time.Second, int(cfg.Sampling.Initial), int(cfg.Sampling.Thereafter))
+			return zapcore.NewSamplerWithOptions(core, time.Second, cfg.Sampling.Initial, cfg.Sampling.Thereafter)
 		}))
 	}
 
