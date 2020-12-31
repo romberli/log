@@ -85,6 +85,18 @@ func AddWriteSyncer(ws zapcore.WriteSyncer) {
 	_globalP.Core.(*textIOCore).AddWriteSyncer(ws)
 }
 
+// Clone clones global logger
+func Clone() *Logger {
+	return _globalL.Clone()
+}
+
+// CloneAndAddWriteSyncer clones global logger and add specified write syncer to it
+func CloneAndAddWriteSyncer(ws zapcore.WriteSyncer) *Logger {
+	c := _globalL.Clone()
+	c.AddWriteSyncer(ws)
+	return c
+}
+
 // Debug logs a message at DebugLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Debug(msg string, fields ...zap.Field) {

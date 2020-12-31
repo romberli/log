@@ -66,3 +66,7 @@ if you don't want to escape some special characters(\n,\r,\t) in the message con
 ```
 log.SetDisableEscape(true)
 ```
+if you want to add another output to current logger
+```
+log.
+```

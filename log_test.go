@@ -84,13 +84,19 @@ func TestLog(t *testing.T) {
 
 	wg.Wait()
 
+	t.Log("==========test clone==========")
+	CloneAndAddWriteSyncer(NewStdoutWriteSyncer()).Info("this is cloned logger info message")
+	Info("this is original logger info message, which should be not be printed")
+	t.Log("==========test clone==========")
+
 	t.Log("==========add stdout to logger started==========")
-	stdoutSyncer := NewStdoutWriteSyncer()
 	MyLogger.CloneAndAddWriteSyncer(NewStdoutWriteSyncer()).Info("test CloneAndAddWriteSyncer()")
-	MyLogger.Info("mylogger info message after test CloneAndAddWriteSyncer, this should not be printed.")
+	MyLogger.Info("mylogger info message after test CloneAndAddWriteSyncer, this should not be printed")
+	stdoutSyncer := NewStdoutWriteSyncer()
 	AddWriteSyncer(stdoutSyncer)
 	Info("this is main info message which prints to stdout")
 	Error("this is main error message which prints to stdout")
 	MyLogger.Error("this is main mylogger error message which prints to stdout")
 	t.Log("==========add stdout to logger completed==========")
+
 }
