@@ -83,4 +83,12 @@ func TestLog(t *testing.T) {
 	t.Log("==========print goroutine log entry completed==========")
 
 	wg.Wait()
+
+	t.Log("==========add stdout to logger started==========")
+	stdoutSyncer := NewStdoutWriteSyncer()
+	AddWriteSyncer(stdoutSyncer)
+	Info("this is main info message which prints to stdout")
+	Error("this is main error message which prints to stdout")
+	MyLogger.Error("this is main mylogger error message which prints to stdout")
+	t.Log("==========add stdout to logger completed==========")
 }

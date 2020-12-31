@@ -137,8 +137,8 @@ func StringToLogFormatter(format string, disableTimestamp bool) logrus.Formatter
 	}
 }
 
-// initFileLog initializes file based logging options.
-func initFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
+// InitFileLog initializes file based logging options.
+func InitFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
 	if st, err := os.Stat(cfg.FileName); err == nil {
 		if st.IsDir() {
 			return nil, errors.New("can't use directory as log file name")
@@ -164,13 +164,12 @@ func initFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
 	}, nil
 }
 
-// newLogger returns a logger
-func newLogger() (*Logger, *ZapProperties, error) {
+// NewLogger returns a logger which will write log message to stdout
+func NewLogger() (*Logger, *ZapProperties, error) {
 	var (
-		err       error
-		cfg       *Config
-		stdOut    zapcore.WriteSyncer
-		closeFunc func()
+		err              error
+		cfg              *Config
+		multiWriteSyncer zapcore.WriteSyncer
 	)
 
 	cfg = &Config{
@@ -179,17 +178,9 @@ func newLogger() (*Logger, *ZapProperties, error) {
 		File:   FileLogConfig{},
 	}
 
-	stdOut, closeFunc, err = zap.Open([]string{DefaultOutput}...)
-	if err != nil {
-		if closeFunc != nil {
-			closeFunc()
-		}
-
-		return nil, nil, errors.Trace(err)
-	}
-
+	multiWriteSyncer = NewMultiWriteSyncer(NewStdoutWriteSyncer())
 	MyZapLogger, MyProps, err = InitLoggerWithWriteSyncer(
-		cfg, stdOut, zap.AddStacktrace(zapcore.ErrorLevel),
+		cfg, multiWriteSyncer, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.Development(),
 	)
 	if err != nil {
@@ -204,36 +195,28 @@ func newLogger() (*Logger, *ZapProperties, error) {
 // InitLoggerWithConfig initializes a zap logger with config.
 func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	var (
-		err       error
-		lg        *lumberjack.Logger
-		stdOut    zapcore.WriteSyncer
-		closeFunc func()
-		output    zapcore.WriteSyncer
-		zapLogger *zap.Logger
+		err              error
+		lg               *lumberjack.Logger
+		output           zapcore.WriteSyncer
+		multiWriteSyncer zapcore.WriteSyncer
+		zapLogger        *zap.Logger
 	)
 
 	if len(cfg.File.FileName) > 0 {
-		lg, err = initFileLog(&cfg.File)
+		lg, err = InitFileLog(&cfg.File)
 		if err != nil {
 			return nil, nil, errors.Trace(err)
 		}
 
-		output = zapcore.AddSync(lg)
+		output = NewWriteSyncer(lg)
 	} else {
-		stdOut, closeFunc, err = zap.Open([]string{DefaultOutput}...)
-		if err != nil {
-			if closeFunc != nil {
-				closeFunc()
-			}
-
-			return nil, nil, errors.Trace(err)
-		}
-
-		output = stdOut
+		output = NewStdoutWriteSyncer()
 	}
 
+	multiWriteSyncer = NewMultiWriteSyncer(output)
+
 	zapLogger, MyProps, err = InitLoggerWithWriteSyncer(
-		cfg, output, zap.AddStacktrace(zapcore.ErrorLevel),
+		cfg, multiWriteSyncer, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.Development(),
 	)
 	if err != nil {
@@ -288,6 +271,6 @@ func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...
 
 // init initiate MyLogger when this package is imported
 func init() {
-	MyLogger, MyProps, _ = newLogger()
+	MyLogger, MyProps, _ = NewLogger()
 	ReplaceGlobals(MyLogger, MyProps)
 }

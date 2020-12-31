@@ -2,6 +2,7 @@ package log
 
 import (
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // Logger wraps zap logger and sugared logger
@@ -27,6 +28,11 @@ func (logger *Logger) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 // SetDisableEscape disables escaping special characters of log content like \n,\r...
 func (logger *Logger) SetDisableEscape(disableEscape bool) {
 	logger.zapLogger.Core().(*textIOCore).SetDisableEscape(disableEscape)
+}
+
+// AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
+func (logger *Logger) AddWriteSyncer(ws zapcore.WriteSyncer) {
+	logger.zapLogger.Core().(*textIOCore).AddWriteSyncer(ws)
 }
 
 // WithOptions returns a new *Logger with specified options

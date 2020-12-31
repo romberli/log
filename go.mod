@@ -6,7 +6,8 @@ require (
 	github.com/pingcap/errors v0.11.4
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
-	go.uber.org/zap v1.13.0
+	go.uber.org/multierr v1.5.0
+	go.uber.org/zap v1.16.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
 

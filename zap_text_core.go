@@ -85,3 +85,18 @@ func (c *textIOCore) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 func (c *textIOCore) SetDisableEscape(disableEscape bool) {
 	c.enc.SetDisableEscape(disableEscape)
 }
+
+func (c *textIOCore) ListWriteSyncer() []zapcore.WriteSyncer {
+	multiWriteSyncer, ok := c.out.(MultiWriteSyncer)
+	if ok {
+		return multiWriteSyncer.List()
+	}
+
+	return []zapcore.WriteSyncer{c.out}
+}
+
+func (c *textIOCore) AddWriteSyncer(ws zapcore.WriteSyncer) {
+	syncerList := c.ListWriteSyncer()
+	syncerList = append(syncerList, ws)
+	c.out = NewMultiWriteSyncer(syncerList...)
+}

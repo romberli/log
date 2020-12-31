@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	_globalL, _globalP, _ = newLogger()
+	_globalL, _globalP, _ = NewLogger()
 	_globalS              = _globalL.SugaredLogger
 )
 
@@ -77,6 +77,12 @@ func SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 func SetDisableEscape(disableEscape bool) {
 	_globalL.SetDisableEscape(disableEscape)
 	_globalP.Core.(*textIOCore).SetDisableEscape(disableEscape)
+}
+
+// AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
+func AddWriteSyncer(ws zapcore.WriteSyncer) {
+	_globalL.AddWriteSyncer(ws)
+	_globalP.Core.(*textIOCore).AddWriteSyncer(ws)
 }
 
 // Debug logs a message at DebugLevel. The message includes any fields passed
