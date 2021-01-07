@@ -49,7 +49,7 @@ func (logger *Logger) CloneAndAddWriteSyncer(ws zapcore.WriteSyncer) *Logger {
 func (logger *Logger) WithOptions(opts ...zap.Option) *Logger {
 	return &Logger{
 		zapLogger:     logger.zapLogger.WithOptions(opts...),
-		SugaredLogger: logger.Sugar(),
+		SugaredLogger: logger.zapLogger.WithOptions(opts...).Sugar(),
 	}
 }
 

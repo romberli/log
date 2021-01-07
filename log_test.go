@@ -86,6 +86,7 @@ func TestLog(t *testing.T) {
 
 	t.Log("==========test clone==========")
 	CloneStdoutLogger().Info("this is cloned logger info message")
+	CloneStdoutLogger().Infof("this is cloned logger infof message")
 	Info("this is original logger info message, which should be not be printed")
 	t.Log("==========test clone==========")
 
