@@ -270,10 +270,8 @@ func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...
 }
 
 func CloneLogger(logger *Logger) *Logger {
-	c := &Logger{}
-	core := logger.zapLogger.Core().(*textIOCore).clone()
-	c.zapLogger = logger.zapLogger.CloneWithNewCore(core)
-	c.SugaredLogger = c.zapLogger.Sugar()
+	core := logger.zapLogger.Core().(*textIOCore)
+	c := logger.WithOptions(zap.WrapCore(func(core2 zapcore.Core) zapcore.Core { return core.clone() }))
 	return c
 }
 

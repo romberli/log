@@ -87,12 +87,12 @@ func AddWriteSyncer(ws zapcore.WriteSyncer) {
 
 // Clone clones global logger
 func Clone() *Logger {
-	return _globalL.Clone()
+	return _globalL.Clone().WithOptions(zap.AddCallerSkip(-1))
 }
 
 // CloneAndAddWriteSyncer clones global logger and add specified write syncer to it
 func CloneAndAddWriteSyncer(ws zapcore.WriteSyncer) *Logger {
-	c := _globalL.Clone()
+	c := Clone()
 	c.AddWriteSyncer(ws)
 	return c
 }

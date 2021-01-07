@@ -1,6 +1,6 @@
 module github.com/romberli/log
 
-replace go.uber.org/zap v1.16.0 => github.com/romberli/zap v1.16.1
+//replace go.uber.org/zap v1.16.0 => github.com/romberli/zap v1.16.1
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200819183940-29e1ff8eb0bb
