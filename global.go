@@ -97,6 +97,11 @@ func CloneAndAddWriteSyncer(ws zapcore.WriteSyncer) *Logger {
 	return c
 }
 
+// CloneStdoutLogger clones global logger and add stdout write syncer to it
+func CloneStdoutLogger() *Logger {
+	return CloneAndAddWriteSyncer(NewStdoutWriteSyncer())
+}
+
 // Debug logs a message at DebugLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 func Debug(msg string, fields ...zap.Field) {
