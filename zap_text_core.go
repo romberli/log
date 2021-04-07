@@ -15,6 +15,14 @@ package log
 
 import "go.uber.org/zap/zapcore"
 
+// textIOCore is a copy of zapcore.ioCore that only accept *textEncoder
+// it can be removed after https://github.com/uber-go/zap/pull/685 be merged
+type textIOCore struct {
+	zapcore.LevelEnabler
+	enc *textEncoder
+	out zapcore.WriteSyncer
+}
+
 // NewTextCore creates a Core that writes logs to a WriteSyncer.
 func NewTextCore(enc *textEncoder, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
 	return &textIOCore{
@@ -22,14 +30,6 @@ func NewTextCore(enc *textEncoder, ws zapcore.WriteSyncer, enab zapcore.LevelEna
 		enc:          enc,
 		out:          ws,
 	}
-}
-
-// textIOCore is a copy of zapcore.ioCore that only accept *textEncoder
-// it can be removed after https://github.com/uber-go/zap/pull/685 be merged
-type textIOCore struct {
-	zapcore.LevelEnabler
-	enc *textEncoder
-	out zapcore.WriteSyncer
 }
 
 func (c *textIOCore) With(fields []zapcore.Field) zapcore.Core {
