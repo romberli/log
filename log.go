@@ -229,7 +229,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	return MyLogger, MyProps, nil
 }
 
-// InitLogger initiate logger with given options
+// InitLogger initiates logger with given options
 func InitLogger(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Logger, *ZapProperties, error) {
 	logConfig, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups)
 	if err != nil {
@@ -239,7 +239,7 @@ func InitLogger(fileName, level, format string, maxSize, maxDays, maxBackups int
 	return InitLoggerWithConfig(logConfig)
 }
 
-// InitLogger initiate logger with default options
+// InitLoggerWithDefaultConfig initiates logger with default options
 func InitLoggerWithDefaultConfig(fileName string) (*Logger, *ZapProperties, error) {
 	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups)
 	if err != nil {

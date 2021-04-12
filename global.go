@@ -73,7 +73,7 @@ func SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	_globalP.Core.(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
 }
 
-// SetDisableDoubleQuotes disables wrapping log content with double quotes of global logger
+// SetDisableEscape disables wrapping log content with double quotes of global logger
 func SetDisableEscape(disableEscape bool) {
 	_globalL.SetDisableEscape(disableEscape)
 	_globalP.Core.(*textIOCore).SetDisableEscape(disableEscape)

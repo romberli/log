@@ -84,7 +84,7 @@ func NewFileLogConfig(fileName string, maxSize, maxDays, maxBackups int) (fileLo
 	return fileLogConfig, nil
 }
 
-// NewFileLogConfigWithDefault creates a FileLogConfig, if fileName is empty, it will use default file name.
+// NewFileLogConfigWithDefaultFileName creates a FileLogConfig, if fileName is empty, it will use default file name.
 func NewFileLogConfigWithDefaultFileName(fileName string, maxSize, maxDays, maxBackups int) (fileLogConfig *FileLogConfig, err error) {
 	var baseDir string
 	var logDir string
@@ -121,6 +121,11 @@ func NewFileLogConfigWithDefaultFileName(fileName string, maxSize, maxDays, maxB
 	}
 
 	return fileLogConfig, nil
+}
+
+// NewEmptyFileLogConfig returns an empty *FileLogConfig
+func NewEmptyFileLogConfig() *FileLogConfig {
+	return &FileLogConfig{}
 }
 
 // Config serializes log related config in yaml/json.

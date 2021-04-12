@@ -19,6 +19,7 @@ func NewMyLogger(logger *zap.Logger) *Logger {
 	}
 }
 
+// Clone clones logger and returns the new one
 func (logger *Logger) Clone() *Logger {
 	return CloneLogger(logger)
 }
@@ -33,12 +34,12 @@ func (logger *Logger) SetDisableEscape(disableEscape bool) {
 	logger.zapLogger.Core().(*textIOCore).SetDisableEscape(disableEscape)
 }
 
-// AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
+// AddWriteSyncer adds write syncer to multi write syncer, which allows to add a new way to write log message
 func (logger *Logger) AddWriteSyncer(ws zapcore.WriteSyncer) {
 	logger.zapLogger.Core().(*textIOCore).AddWriteSyncer(ws)
 }
 
-// AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
+// CloneAndAddWriteSyncer adds write syncer to multi write syncer, which allows to add a new way to write log message
 func (logger *Logger) CloneAndAddWriteSyncer(ws zapcore.WriteSyncer) *Logger {
 	c := logger.Clone()
 	c.AddWriteSyncer(ws)
