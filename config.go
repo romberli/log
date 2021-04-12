@@ -175,7 +175,15 @@ func NewConfig(level, format string, fileCfg FileLogConfig) *Config {
 	}
 }
 
-// NewConfigWithFileLog creates a Config with file.
+// NewConfigWithStdout returns a *Config with given level and format
+func NewConfigWithStdout(level, format string) *Config {
+	return &Config{
+		Level:  level,
+		Format: format,
+	}
+}
+
+// NewConfigWithFileLog returns a *Config with file options
 func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Config, error) {
 	fileCfg, err := NewFileLogConfig(fileName, maxSize, maxDays, maxBackups)
 	if err != nil {
