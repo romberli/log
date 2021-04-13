@@ -136,8 +136,8 @@ func StringToLogFormatter(format string, disableTimestamp bool) logrus.Formatter
 	}
 }
 
-// InitFileLog initializes file based logging options.
-func InitFileLog(cfg *FileLogConfig) (*lumberjack.Logger, error) {
+// InitLumberjackLoggerWithFileLogConfig initializes file based logging options.
+func InitLumberjackLoggerWithFileLogConfig(cfg *FileLogConfig) (*lumberjack.Logger, error) {
 	if st, err := os.Stat(cfg.FileName); err == nil {
 		if st.IsDir() {
 			return nil, errors.New("can't use directory as log file name")
@@ -175,13 +175,13 @@ func NewLogger() (*Logger, *ZapProperties, error) {
 // NewStdoutLogger returns a logger which will write log message to stdout
 func NewStdoutLogger(level, format string) (*Logger, *ZapProperties, error) {
 	cfg := &Config{
-		Level:  DefaultLogLevel,
-		Format: DefaultLogFormat,
+		Level:  level,
+		Format: format,
 		File:   FileLogConfig{},
 	}
 
 	multiWriteSyncer := NewMultiWriteSyncer(NewStdoutWriteSyncer())
-	myZapLogger, myProps, err := InitLoggerWithWriteSyncer(
+	myZapLogger, myProps, err := InitZapLoggerWithWriteSyncer(
 		cfg, multiWriteSyncer, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.Development(),
 	)
@@ -205,7 +205,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	)
 
 	if len(cfg.File.FileName) > 0 {
-		lg, err = InitFileLog(&cfg.File)
+		lg, err = InitLumberjackLoggerWithFileLogConfig(&cfg.File)
 		if err != nil {
 			return nil, nil, errors.Trace(err)
 		}
@@ -217,7 +217,7 @@ func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 
 	multiWriteSyncer = NewMultiWriteSyncer(output)
 
-	zapLogger, MyProps, err = InitLoggerWithWriteSyncer(
+	zapLogger, MyProps, err = InitZapLoggerWithWriteSyncer(
 		cfg, multiWriteSyncer, zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.Development(),
 	)
@@ -238,6 +238,11 @@ func InitStdoutLogger(level, format string) (*Logger, *ZapProperties, error) {
 	return InitLoggerWithConfig(cfg)
 }
 
+// InitStdoutLogger initiates a stdout logger with given level and format
+func InitStdoutLoggerWithDefault() (*Logger, *ZapProperties, error) {
+	return InitStdoutLogger(DefaultLogLevel, DefaultLogFormat)
+}
+
 // InitFileLogger initiates a file logger with given options
 func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Logger, *ZapProperties, error) {
 	cfg, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups)
@@ -248,8 +253,8 @@ func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups
 	return InitLoggerWithConfig(cfg)
 }
 
-// InitLoggerWithDefaultConfig initiates logger with default options
-func InitLoggerWithDefaultConfig(fileName string) (*Logger, *ZapProperties, error) {
+// InitFileLoggerWithDefaultConfig initiates logger with default options
+func InitFileLoggerWithDefault(fileName string) (*Logger, *ZapProperties, error) {
 	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups)
 	if err != nil {
 		fmt.Printf("got error when creating log config.\n%s", err.Error())
@@ -258,8 +263,8 @@ func InitLoggerWithDefaultConfig(fileName string) (*Logger, *ZapProperties, erro
 	return InitLoggerWithConfig(logConfig)
 }
 
-// InitLoggerWithWriteSyncer initializes a zap logger with specified  write syncer.
-func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...zap.Option) (*zap.Logger, *ZapProperties, error) {
+// InitZapLoggerWithWriteSyncer initializes a zap logger with specified  write syncer.
+func InitZapLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...zap.Option) (*zap.Logger, *ZapProperties, error) {
 	level := zap.NewAtomicLevel()
 
 	if err := level.UnmarshalText([]byte(cfg.Level)); err != nil {

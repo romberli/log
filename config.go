@@ -239,11 +239,40 @@ func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
 	return opts
 }
 
-// ZapProperties records some information about zap.
+// ZapProperties records some information about zap
 type ZapProperties struct {
 	Core   zapcore.Core
 	Syncer zapcore.WriteSyncer
 	Level  zap.AtomicLevel
+}
+
+// Clone returns a fresh new *ZapProperties with same options,
+// note that it will use the same syncer
+func (props *ZapProperties) Clone() *ZapProperties {
+	core := props.Core.With([]zapcore.Field{})
+	level := zap.NewAtomicLevelAt(props.Level.Level())
+
+	return &ZapProperties{
+		core,
+		props.Syncer,
+		level,
+	}
+}
+
+// SetCore sets the core
+func (props *ZapProperties) SetCore(core zapcore.Core) {
+	props.Core = core
+}
+
+// WithCore returns a fresh new *ZapProperties with given core
+func (props *ZapProperties) WithCore(core zapcore.Core) *ZapProperties {
+	level := zap.NewAtomicLevelAt(props.Level.Level())
+
+	return &ZapProperties{
+		core,
+		props.Syncer,
+		level,
+	}
 }
 
 // newZapTextEncoder returns zapcore.Encoder with given config

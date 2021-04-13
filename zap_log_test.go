@@ -90,7 +90,7 @@ func newZapTestLogger(cfg *Config, c *C, opts ...zap.Option) verifyLogger {
 	// TestingWriter is used to write to memory.
 	// Used in the verify logger.
 	writer := newTestingWriter(c)
-	lg, _, err := InitLoggerWithWriteSyncer(cfg, writer, opts...)
+	lg, _, err := InitZapLoggerWithWriteSyncer(cfg, writer, opts...)
 	c.Assert(err, IsNil)
 
 	return verifyLogger{

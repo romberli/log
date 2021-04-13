@@ -17,7 +17,7 @@ func main() {
     maxDays := 7
     maxBackups := 5
     
-    _, _, err = log.InitLogger(fileName, level, format, maxSize, maxDays, maxBackups)
+    _, _, err = log.InitFileLogger(fileName, level, format, maxSize, maxDays, maxBackups)
     if err != nil {
         fmt.Printf("init logger failed.\n%s", err.Error())
     }
@@ -35,7 +35,7 @@ import github.com/romberli/log
 func main() {
     fileName := "/tmp/run.log"
 
-    _, _, err = log.InitLoggerWithDefaultConfig(fileName)
+    _, _, err = log.InitFileLoggerWithDefault(fileName)
     if err != nil {
         fmt.Printf("init logger failed.\n%s", err.Error())
     }
