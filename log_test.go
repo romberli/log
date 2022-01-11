@@ -1,9 +1,15 @@
 package log
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
+
+	perr "github.com/pkg/errors"
+	"go.uber.org/zap"
+
+	// "go.uber.org/zap"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -99,4 +105,28 @@ func TestLog(t *testing.T) {
 	Error("this is main error message which prints to stdout")
 	MyLogger.Error("this is main mylogger error message which prints to stdout")
 	t.Log("==========add stdout to logger completed==========")
+}
+
+func funcA() error {
+	return errors.New("function error")
+}
+
+func funcB() error {
+	return perr.WithStack(funcA())
+}
+
+func funcC() error {
+	return perr.WithStack(funcB())
+}
+
+func TestLogStack(t *testing.T) {
+	SetDisableEscape(true)
+	SetDisableDoubleQuotes(true)
+	err := funcC()
+	// MyLogger = MyLogger.WithOptions(zap.AddCaller())
+	// MyLogger.Error(fmt.Sprintf("ttt: %s", err.Error()))
+	MyLogger.Error("ttt: ", zap.Error(err))
+	// MyLogger.Errorf("", zap.Error(err).String)
+	t.Log("=======")
+	Error(err.Error())
 }
