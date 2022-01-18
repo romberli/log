@@ -23,7 +23,7 @@ type Level uint32
 const (
 	// set default caller skip which could modify caller section of log message
 	DefaultCallerSkip = 1
-	// PanicLevel level, highest level of severity. Logs and then calls panic with the
+	// PanicLevel level, the highest level of severity. Logs and then calls panic with the
 	// message passed to Debug, Info, ...
 	PanicLevel Level = iota
 	// FatalLevel level. Logs and then calls `logger.Exit(1)`. It will exit even if the

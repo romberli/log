@@ -1,16 +1,13 @@
 package log
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"testing"
 
-	perr "github.com/pkg/errors"
-	"go.uber.org/zap"
-
-	// "go.uber.org/zap"
-
+	"github.com/pingcap/errors"
+	"github.com/romberli/go-multierror"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -112,21 +109,52 @@ func funcA() error {
 }
 
 func funcB() error {
-	return perr.WithStack(funcA())
+	return errors.Trace(funcA())
 }
 
 func funcC() error {
-	return perr.WithStack(funcB())
+	return errors.Trace(funcB())
+}
+
+type T struct {
+	F func() error
+}
+
+func JSONMarshal() error {
+	t := &T{funcA}
+	_, err := json.Marshal(t)
+
+	return errors.WithStack(err)
+}
+
+type ErrMessage struct {
+	Raw string
+}
+
+func (em *ErrMessage) Error() string {
+	return em.Raw
 }
 
 func TestLogStack(t *testing.T) {
 	SetDisableEscape(true)
 	SetDisableDoubleQuotes(true)
 	err := funcC()
+	merr := &multierror.Error{}
+	merr = multierror.Append(merr, err)
+
 	// MyLogger = MyLogger.WithOptions(zap.AddCaller())
 	// MyLogger.Error(fmt.Sprintf("ttt: %s", err.Error()))
-	MyLogger.Error("ttt: ", zap.Error(err))
-	// MyLogger.Errorf("", zap.Error(err).String)
-	t.Log("=======")
-	Error(err.Error())
+	// MyLogger.Error("func: ", zap.Error(err))
+	// err = JSONMarshal()
+	// msg := fmt.Sprintf("got error. err:\n%+v", err)
+	// t.Log(msg)
+	em := &ErrMessage{fmt.Sprintf("%+v", err)}
+	MyLogger.Errorf("json: %s", em.Error())
+	//
+	// MyLogger.Errorf("json: %+v", merr.WrappedErrors())
+	// t.Log("=======")
+	//
+	// err = fmt.Errorf("wrapped error. error:\n%+v", err)
+	// MyLogger.Errorf("json: %+v", err)
+	// Error(err.Error())
 }

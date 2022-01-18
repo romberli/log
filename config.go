@@ -14,7 +14,6 @@
 package log
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -22,6 +21,7 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/pingcap/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -92,19 +92,21 @@ func NewFileLogConfigWithDefaultFileName(fileName string, maxSize, maxDays, maxB
 	fileName = strings.TrimSpace(fileName)
 
 	if fileName == "" {
-		if baseDir, err = os.Getwd(); err != nil {
-			return nil, err
+		baseDir, err = os.Getwd()
+		if err != nil {
+			return nil, errors.Trace(err)
 		}
 
 		logDir = path.Join(baseDir, "log")
-
-		if _, err := os.Stat(logDir); err != nil {
+		_, err = os.Stat(logDir)
+		if err != nil {
 			if os.IsNotExist(err) {
-				if _, err = os.Create(logDir); err != nil {
-					return nil, err
+				_, err = os.Create(logDir)
+				if err != nil {
+					return nil, errors.Trace(err)
 				}
 			} else {
-				return nil, err
+				return nil, errors.Trace(err)
 			}
 		}
 

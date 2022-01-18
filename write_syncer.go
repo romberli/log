@@ -4,7 +4,8 @@ import (
 	"io"
 	"os"
 
-	"go.uber.org/multierr"
+	"github.com/pingcap/errors"
+	"github.com/romberli/go-multierror"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -61,7 +62,7 @@ func (ws MultiWriteSyncer) Write(p []byte) (int, error) {
 	nWritten := 0
 	for _, w := range ws {
 		n, err := w.Write(p)
-		writeErr = multierr.Append(writeErr, err)
+		writeErr = multierror.Append(writeErr, errors.Trace(err))
 		if nWritten == 0 && n != 0 {
 			nWritten = n
 		} else if n < nWritten {
@@ -74,7 +75,7 @@ func (ws MultiWriteSyncer) Write(p []byte) (int, error) {
 func (ws MultiWriteSyncer) Sync() error {
 	var err error
 	for _, w := range ws {
-		err = multierr.Append(err, w.Sync())
+		err = multierror.Append(err, w.Sync())
 	}
 	return err
 }
