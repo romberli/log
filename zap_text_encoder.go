@@ -613,10 +613,13 @@ func (enc *textEncoder) tryAddRuneSelf(b byte) bool {
 		return true
 	}
 	switch b {
-	case '\\', '"':
+	case '\\':
+		enc.buf.AppendByte('\\')
+		enc.buf.AppendByte(b)
+	case '"':
 		if !enc.DisableEscape {
 			enc.buf.AppendByte('\\')
-			enc.buf.AppendByte(b)
+			enc.buf.AppendByte('"')
 		} else {
 			enc.buf.AppendByte(b)
 		}
