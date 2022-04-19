@@ -58,24 +58,26 @@ func (ws MultiWriteSyncer) list(syncerList []zapcore.WriteSyncer) {
 // the smallest number is returned even though Write() is called on
 // all of them.
 func (ws MultiWriteSyncer) Write(p []byte) (int, error) {
-	var writeErr error
+	var writeErr *multierror.Error
 	nWritten := 0
 	for _, w := range ws {
 		n, err := w.Write(p)
-		writeErr = multierror.Append(writeErr, errors.Trace(err))
+		if err != nil {
+			writeErr = multierror.Append(writeErr, errors.Trace(err))
+		}
 		if nWritten == 0 && n != 0 {
 			nWritten = n
 		} else if n < nWritten {
 			nWritten = n
 		}
 	}
-	return nWritten, writeErr
+	return nWritten, writeErr.ErrorOrNil()
 }
 
 func (ws MultiWriteSyncer) Sync() error {
-	var err error
+	var err *multierror.Error
 	for _, w := range ws {
 		err = multierror.Append(err, w.Sync())
 	}
-	return err
+	return err.ErrorOrNil()
 }
