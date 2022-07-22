@@ -9,14 +9,42 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// NewWriteSyncer converts io.Writer to zapcore.WriteSyncer
+type WriteSyncer struct {
+	io.Writer
+	ws zapcore.WriteSyncer
+}
+
+// NewWriteSyncer returns a new zapcore.WriteSyncer
 func NewWriteSyncer(w io.Writer) zapcore.WriteSyncer {
-	return zapcore.AddSync(w)
+	return newWriteSyncer(w)
 }
 
 // NewStdoutWriteSyncer returns a zapcore.WriteSyncer using os.Stdout
 func NewStdoutWriteSyncer() zapcore.WriteSyncer {
-	return NewWriteSyncer(os.Stdout)
+	return newWriteSyncer(os.Stdout)
+}
+
+// newWriteSyncer returns a new *WriterSyncer
+func newWriteSyncer(w io.Writer) *WriteSyncer {
+	return &WriteSyncer{
+		Writer: w,
+		ws:     zapcore.AddSync(w),
+	}
+}
+
+// GetWriter returns the underlying writer of the WriteSyncer
+func (ws WriteSyncer) GetWriter() io.Writer {
+	return ws.Writer
+}
+
+// GetWriteSyncer returns the underlying WriteSyncer of the WriteSyncer
+func (ws WriteSyncer) GetWriteSyncer() zapcore.WriteSyncer {
+	return ws.ws
+}
+
+// Sync implements zapcore.WriteSyncer
+func (ws WriteSyncer) Sync() error {
+	return ws.ws.Sync()
 }
 
 type MultiWriteSyncer []zapcore.WriteSyncer

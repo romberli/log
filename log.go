@@ -24,7 +24,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const DefaultOutput = "stdout"
@@ -135,7 +134,7 @@ func StringToLogFormatter(format string, disableTimestamp bool) logrus.Formatter
 }
 
 // InitLumberjackLoggerWithFileLogConfig initializes file based logging options.
-func InitLumberjackLoggerWithFileLogConfig(cfg *FileLogConfig) (*lumberjack.Logger, error) {
+func InitLumberjackLoggerWithFileLogConfig(cfg *FileLogConfig) (*Writer, error) {
 	st, err := os.Stat(cfg.FileName)
 	if err == nil {
 		if st.IsDir() {
@@ -153,12 +152,13 @@ func InitLumberjackLoggerWithFileLogConfig(cfg *FileLogConfig) (*lumberjack.Logg
 	}
 
 	// use lumberjack to rotate log file
-	return &lumberjack.Logger{
-		Filename:   cfg.FileName,
-		MaxSize:    cfg.MaxSize,
-		MaxBackups: cfg.MaxBackups,
-		MaxAge:     cfg.MaxDays,
-		LocalTime:  true,
+	return &Writer{
+		Filename:             cfg.FileName,
+		MaxSize:              cfg.MaxSize,
+		MaxBackups:           cfg.MaxBackups,
+		MaxAge:               cfg.MaxDays,
+		LocalTime:            true,
+		BackupFileNameOption: cfg.BackupFileNameOption,
 	}, nil
 }
 
@@ -197,19 +197,19 @@ func NewStdoutLogger(level, format string) (*Logger, *ZapProperties, error) {
 func InitLoggerWithConfig(cfg *Config) (*Logger, *ZapProperties, error) {
 	var (
 		err              error
-		lg               *lumberjack.Logger
+		writer           *Writer
 		output           zapcore.WriteSyncer
 		multiWriteSyncer zapcore.WriteSyncer
 		zapLogger        *zap.Logger
 	)
 
 	if len(cfg.File.FileName) > 0 {
-		lg, err = InitLumberjackLoggerWithFileLogConfig(&cfg.File)
+		writer, err = InitLumberjackLoggerWithFileLogConfig(&cfg.File)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		output = NewWriteSyncer(lg)
+		output = NewWriteSyncer(writer)
 	} else {
 		output = NewStdoutWriteSyncer()
 	}
@@ -242,8 +242,8 @@ func InitStdoutLoggerWithDefault() (*Logger, *ZapProperties, error) {
 }
 
 // InitFileLogger initiates a file logger with given options
-func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups int) (*Logger, *ZapProperties, error) {
-	cfg, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups)
+func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups int, backupFileNameOption Option) (*Logger, *ZapProperties, error) {
+	cfg, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups, backupFileNameOption)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -253,7 +253,7 @@ func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups
 
 // InitFileLoggerWithDefaultConfig initiates logger with default options
 func InitFileLoggerWithDefault(fileName string) (*Logger, *ZapProperties, error) {
-	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups)
+	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups, nil)
 	if err != nil {
 		return nil, nil, err
 	}

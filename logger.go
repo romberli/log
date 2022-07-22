@@ -1,6 +1,7 @@
 package log
 
 import (
+	"github.com/pingcap/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -17,6 +18,21 @@ func NewMyLogger(logger *zap.Logger) *Logger {
 		zapLogger:     logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)),
 		SugaredLogger: logger.WithOptions(zap.AddCallerSkip(DefaultCallerSkip)).Sugar(),
 	}
+}
+
+func (logger *Logger) Rotate() error {
+	core, ok := logger.zapLogger.Core().(*textIOCore)
+	if ok {
+		ws, ok := core.GetWriterSyncer().(*WriteSyncer)
+		if ok {
+			w, ok := ws.GetWriter().(*Writer)
+			if ok {
+				return w.Rotate()
+			}
+		}
+	}
+
+	return errors.New("failed to rotate log file, make sure use lumberjack writer as the writer")
 }
 
 // Clone clones logger and returns the new one

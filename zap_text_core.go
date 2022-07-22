@@ -32,6 +32,10 @@ func NewTextCore(enc *textEncoder, ws zapcore.WriteSyncer, enab zapcore.LevelEna
 	}
 }
 
+func (c *textIOCore) GetWriterSyncer() zapcore.WriteSyncer {
+	return c.out
+}
+
 func (c *textIOCore) With(fields []zapcore.Field) zapcore.Core {
 	clone := c.clone()
 	// it's different to ioCore, here call textEncoder#addFields to fix https://github.com/pingcap/log/issues/3
