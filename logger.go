@@ -20,6 +20,7 @@ func NewMyLogger(logger *zap.Logger) *Logger {
 	}
 }
 
+// Rotate rotates log file
 func (logger *Logger) Rotate() error {
 	core, ok := logger.zapLogger.Core().(*textIOCore)
 	if ok {
