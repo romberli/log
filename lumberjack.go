@@ -143,19 +143,19 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 
 	writeLen := int64(len(p))
 	if writeLen > w.max() {
-		return 0, fmt.Errorf(
-			"write length %d exceeds maximum file size %d", writeLen, w.max(),
-		)
+		return 0, errors.Errorf("write length %d exceeds maximum file size %d", writeLen, w.max())
 	}
 
 	if w.file == nil {
-		if err = w.openExistingOrNew(len(p)); err != nil {
+		err = w.openExistingOrNew(len(p))
+		if err != nil {
 			return 0, err
 		}
 	}
 
 	if w.size+writeLen > w.max() {
-		if err := w.rotate(); err != nil {
+		err = w.rotate()
+		if err != nil {
 			return 0, err
 		}
 	}
@@ -163,7 +163,7 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 	n, err = w.file.Write(p)
 	w.size += int64(n)
 
-	return n, err
+	return n, errors.Trace(err)
 }
 
 // Close implements io.Closer, and closes the current logfile.
@@ -180,7 +180,8 @@ func (w *Writer) close() error {
 	}
 	err := w.file.Close()
 	w.file = nil
-	return err
+
+	return errors.Trace(err)
 }
 
 // Rotate causes Writer to close the existing log file and immediately create a
@@ -191,6 +192,7 @@ func (w *Writer) close() error {
 func (w *Writer) Rotate() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+
 	return w.rotate()
 }
 
@@ -198,13 +200,17 @@ func (w *Writer) Rotate() error {
 // (if it exists), opens a new file with the original filename, and then runs
 // post-rotation processing and removal.
 func (w *Writer) rotate() error {
-	if err := w.close(); err != nil {
+	err := w.close()
+	if err != nil {
 		return err
 	}
-	if err := w.openNew(); err != nil {
+	err = w.openNew()
+	if err != nil {
 		return err
 	}
+
 	w.mill()
+
 	return nil
 }
 
@@ -213,7 +219,7 @@ func (w *Writer) rotate() error {
 func (w *Writer) openNew() error {
 	err := os.MkdirAll(w.dir(), 0744)
 	if err != nil {
-		return fmt.Errorf("can't make directories for new logfile: %s", err)
+		return errors.Errorf("can't make directories for new logfile: %s", err)
 	}
 
 	name := w.filename()
@@ -224,12 +230,14 @@ func (w *Writer) openNew() error {
 		mode = info.Mode()
 		// move the existing file
 		newname := w.backupName(name, w.LocalTime)
-		if err := os.Rename(name, newname); err != nil {
-			return fmt.Errorf("can't rename log file: %s", err)
+		err = os.Rename(name, newname)
+		if err != nil {
+			return errors.Errorf("can't rename log file: %s", err)
 		}
 
 		// this is a no-op anywhere but linux
-		if err := chown(name, info); err != nil {
+		err = chown(name, info)
+		if err != nil {
 			return err
 		}
 	}
@@ -239,10 +247,11 @@ func (w *Writer) openNew() error {
 	// just wipe out the contents.
 	f, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
 	if err != nil {
-		return fmt.Errorf("can't open new logfile: %s", err)
+		return errors.Errorf("can't open new logfile: %s", err)
 	}
 	w.file = f
 	w.size = 0
+
 	return nil
 }
 
@@ -279,7 +288,7 @@ func (w *Writer) openExistingOrNew(writeLen int) error {
 		return w.openNew()
 	}
 	if err != nil {
-		return fmt.Errorf("error getting log file info: %s", err)
+		return errors.Errorf("error getting log file info: %s", err)
 	}
 
 	if info.Size()+int64(writeLen) >= w.max() {
@@ -294,6 +303,7 @@ func (w *Writer) openExistingOrNew(writeLen int) error {
 	}
 	w.file = file
 	w.size = info.Size()
+
 	return nil
 }
 
@@ -303,6 +313,7 @@ func (w *Writer) filename() string {
 		return w.Filename
 	}
 	name := filepath.Base(os.Args[0]) + "-lumberjack.log"
+
 	return filepath.Join(os.TempDir(), name)
 }
 
@@ -379,7 +390,7 @@ func (w *Writer) millRunOnce() error {
 		}
 	}
 
-	return err
+	return errors.Trace(err)
 }
 
 // millRun runs in a goroutine to manage post-rotation compression and removal
@@ -409,7 +420,7 @@ func (w *Writer) mill() {
 func (w *Writer) oldLogFiles() ([]logInfo, error) {
 	files, err := ioutil.ReadDir(w.dir())
 	if err != nil {
-		return nil, fmt.Errorf("can't read log file directory: %s", err)
+		return nil, errors.Errorf("can't read log file directory: %s", err)
 	}
 	var logFiles []logInfo
 
@@ -419,11 +430,13 @@ func (w *Writer) oldLogFiles() ([]logInfo, error) {
 		if f.IsDir() {
 			continue
 		}
-		if t, err := w.timeFromName(f.Name(), prefix, ext); err == nil {
+		t, err := w.timeFromName(f.Name(), prefix, ext)
+		if err == nil {
 			logFiles = append(logFiles, logInfo{t, f})
 			continue
 		}
-		if t, err := w.timeFromName(f.Name(), prefix, ext+compressSuffix); err == nil {
+		t, err = w.timeFromName(f.Name(), prefix, ext+compressSuffix)
+		if err == nil {
 			logFiles = append(logFiles, logInfo{t, f})
 			continue
 		}
@@ -447,7 +460,13 @@ func (w *Writer) timeFromName(filename, prefix, ext string) (time.Time, error) {
 		return time.Time{}, errors.New("mismatched extension")
 	}
 	ts := filename[len(prefix) : len(filename)-len(ext)]
-	return time.Parse(backupTimeFormat, ts)
+
+	t, err := time.Parse(backupTimeFormat, ts)
+	if err != nil {
+		return time.Time{}, errors.Trace(err)
+	}
+
+	return t, nil
 }
 
 // max returns the maximum size in bytes of log files before rolling.
@@ -477,24 +496,25 @@ func (w *Writer) prefixAndExt() (prefix, ext string) {
 func compressLogFile(src, dst string) (err error) {
 	f, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("failed to open log file: %v", err)
+		return errors.Errorf("failed to open log file: %v", err)
 	}
 	defer func() { _ = f.Close() }()
 
 	fi, err := osStat(src)
 	if err != nil {
-		return fmt.Errorf("failed to stat log file: %v", err)
+		return errors.Errorf("failed to stat log file: %v", err)
 	}
 
-	if err := chown(dst, fi); err != nil {
-		return fmt.Errorf("failed to chown compressed log file: %v", err)
+	err = chown(dst, fi)
+	if err != nil {
+		return errors.Errorf("failed to chown compressed log file: %v", err)
 	}
 
 	// If this file already exists, we presume it was created by
 	// a previous attempt to compress the log file.
 	gzf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, fi.Mode())
 	if err != nil {
-		return fmt.Errorf("failed to open compressed log file: %v", err)
+		return errors.Errorf("failed to open compressed log file: %v", err)
 	}
 	defer func() { _ = gzf.Close() }()
 
@@ -503,25 +523,30 @@ func compressLogFile(src, dst string) (err error) {
 	defer func() {
 		if err != nil {
 			_ = os.Remove(dst)
-			err = fmt.Errorf("failed to compress log file: %v", err)
+			err = errors.Errorf("failed to compress log file: %v", err)
 		}
 	}()
 
-	if _, err := io.Copy(gz, f); err != nil {
-		return err
+	_, err = io.Copy(gz, f)
+	if err != nil {
+		return errors.Trace(err)
 	}
-	if err := gz.Close(); err != nil {
-		return err
+	err = gz.Close()
+	if err != nil {
+		return errors.Trace(err)
 	}
-	if err := gzf.Close(); err != nil {
-		return err
+	err = gzf.Close()
+	if err != nil {
+		return errors.Trace(err)
 	}
 
-	if err := f.Close(); err != nil {
-		return err
+	err = f.Close()
+	if err != nil {
+		return errors.Trace(err)
 	}
-	if err := os.Remove(src); err != nil {
-		return err
+	err = os.Remove(src)
+	if err != nil {
+		return errors.Trace(err)
 	}
 
 	return nil
