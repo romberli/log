@@ -16,9 +16,8 @@ import (
 )
 
 const (
-	backupTimeFormat       = "2006-01-02T15-04-05.000"
-	backupTimeMinuteFormat = "200601021504"
 	backupTimeSecondFormat = "20060102150405"
+	backupTimeMinuteFormat = "200601021504"
 	compressSuffix         = ".gz"
 	defaultMaxSize         = 100
 )
@@ -26,23 +25,13 @@ const (
 // ensure we always implement io.WriteCloser
 var _ io.WriteCloser = (*Writer)(nil)
 
-type Option func(name string) string
+type Option func(name string, local bool) string
 
-func DefaultRotateOption(name string) string {
-	dir := filepath.Dir(name)
-	filename := filepath.Base(name)
-	ext := filepath.Ext(filename)
-	filename = filename[:len(filename)-len(ext)]
+func DefaultRotateOption(name string, local bool) string {
+	ext := filepath.Ext(name)
+	name = name[:len(name)-len(ext)]
 
-	extNew := filepath.Ext(filename)
-	prefix := filename[:len(filename)-len(extNew)]
-	if extNew != "" {
-		ext = extNew
-	}
-
-	timestamp := time.Now().Format(backupTimeSecondFormat)
-
-	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, timestamp, ext))
+	return getName(name, local, backupTimeSecondFormat)
 }
 
 // Writer is an io.WriteCloser that writes to the specified filename.
@@ -260,20 +249,10 @@ func (w *Writer) openNew() error {
 // (otherwise UTC).
 func (w *Writer) backupName(name string, local bool) string {
 	if len(w.Options) > 0 {
-		return w.Options[0](name)
+		return w.Options[0](name, local)
 	}
 
-	dir := filepath.Dir(name)
-	filename := filepath.Base(name)
-	ext := filepath.Ext(filename)
-	prefix := filename[:len(filename)-len(ext)]
-	t := currentTime()
-	if !local {
-		t = t.UTC()
-	}
-
-	timestamp := t.Format(backupTimeFormat)
-	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, timestamp, ext))
+	return getName(name, local, backupTimeSecondFormat)
 }
 
 // openExistingOrNew opens the logfile if it exists and if the current write
@@ -461,7 +440,7 @@ func (w *Writer) timeFromName(filename, prefix, ext string) (time.Time, error) {
 	}
 	ts := filename[len(prefix) : len(filename)-len(ext)]
 
-	t, err := time.Parse(backupTimeFormat, ts)
+	t, err := time.Parse(backupTimeSecondFormat, ts)
 	if err != nil {
 		return time.Time{}, errors.Trace(err)
 	}
@@ -489,6 +468,20 @@ func (w *Writer) prefixAndExt() (prefix, ext string) {
 	ext = filepath.Ext(filename)
 	prefix = filename[:len(filename)-len(ext)] + "-"
 	return prefix, ext
+}
+
+func getName(name string, local bool, format string) string {
+	dir := filepath.Dir(name)
+	filename := filepath.Base(name)
+	ext := filepath.Ext(filename)
+	prefix := filename[:len(filename)-len(ext)]
+	t := currentTime()
+	if !local {
+		t = t.UTC()
+	}
+
+	timestamp := t.Format(format)
+	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, timestamp, ext))
 }
 
 // compressLogFile compresses the given log file, removing the
