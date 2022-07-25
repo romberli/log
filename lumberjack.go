@@ -247,6 +247,8 @@ func (w *Writer) openNew() error {
 // backupName creates a new filename from the given name, inserting a timestamp
 // between the filename and the extension, using the local time if requested
 // (otherwise UTC).
+// if specified Options when initializing the logger, it will apply it,
+// note that only the first option will be applied.
 func (w *Writer) backupName(name string, local bool) string {
 	if len(w.Options) > 0 {
 		return w.Options[0](name, local)
@@ -480,8 +482,7 @@ func getName(name string, local bool, format string) string {
 		t = t.UTC()
 	}
 
-	timestamp := t.Format(format)
-	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, timestamp, ext))
+	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, t.Format(format), ext))
 }
 
 // compressLogFile compresses the given log file, removing the
