@@ -164,7 +164,7 @@ func TestLogRotate(t *testing.T) {
 
 	level := "info"
 	format := "text"
-	fileName := "/tmp/run.log.crn"
+	fileName := "/tmp/run.log.current"
 	maxSize := 1
 	maxDays := 1
 	maxBackups := 2

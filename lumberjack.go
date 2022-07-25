@@ -18,6 +18,7 @@ import (
 const (
 	backupTimeFormat       = "2006-01-02T15-04-05.000"
 	backupTimeMinuteFormat = "200601021504"
+	backupTimeSecondFormat = "20060102150405"
 	compressSuffix         = ".gz"
 	defaultMaxSize         = 100
 )
@@ -32,9 +33,14 @@ func DefaultRotateOption(name string) string {
 	filename := filepath.Base(name)
 	ext := filepath.Ext(filename)
 	filename = filename[:len(filename)-len(ext)]
-	ext = filepath.Ext(filename)
-	prefix := filename[:len(filename)-len(ext)]
-	timestamp := time.Now().Format(backupTimeMinuteFormat)
+
+	extNew := filepath.Ext(filename)
+	prefix := filename[:len(filename)-len(extNew)]
+	if extNew != "" {
+		ext = extNew
+	}
+
+	timestamp := time.Now().Format(backupTimeSecondFormat)
 
 	return filepath.Join(dir, fmt.Sprintf("%s-%s%s", prefix, timestamp, ext))
 }
