@@ -51,15 +51,15 @@ var (
 
 // FileLogConfig serializes file log related config in yaml/json.
 type FileLogConfig struct {
-	FileName             string
-	MaxSize              int
-	MaxDays              int
-	MaxBackups           int
-	BackupFileNameOption Option
+	FileName   string
+	MaxSize    int
+	MaxDays    int
+	MaxBackups int
+	Options    []Option
 }
 
 // NewFileLogConfig creates a FileLogConfig.
-func NewFileLogConfig(fileName string, maxSize, maxDays, maxBackups int, backupFileNameOption Option) (fileLogConfig *FileLogConfig, err error) {
+func NewFileLogConfig(fileName string, maxSize, maxDays, maxBackups int, options ...Option) (fileLogConfig *FileLogConfig, err error) {
 	fileName = strings.TrimSpace(fileName)
 
 	if fileName == "" {
@@ -72,11 +72,11 @@ func NewFileLogConfig(fileName string, maxSize, maxDays, maxBackups int, backupF
 	}
 
 	fileLogConfig = &FileLogConfig{
-		FileName:             fileName,
-		MaxSize:              maxSize,
-		MaxDays:              maxDays,
-		MaxBackups:           maxBackups,
-		BackupFileNameOption: backupFileNameOption,
+		FileName:   fileName,
+		MaxSize:    maxSize,
+		MaxDays:    maxDays,
+		MaxBackups: maxBackups,
+		Options:    options,
 	}
 
 	return fileLogConfig, nil
@@ -114,11 +114,11 @@ func NewFileLogConfigWithDefaultFileName(fileName string, maxSize, maxDays, maxB
 	}
 
 	fileLogConfig = &FileLogConfig{
-		FileName:             fileName,
-		MaxSize:              maxSize,
-		MaxDays:              maxDays,
-		MaxBackups:           maxBackups,
-		BackupFileNameOption: nil,
+		FileName:   fileName,
+		MaxSize:    maxSize,
+		MaxDays:    maxDays,
+		MaxBackups: maxBackups,
+		Options:    nil,
 	}
 
 	return fileLogConfig, nil
@@ -185,8 +185,8 @@ func NewConfigWithStdout(level, format string) *Config {
 }
 
 // NewConfigWithFileLog returns a *Config with file options
-func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxBackups int, backupFileNameOption Option) (*Config, error) {
-	fileCfg, err := NewFileLogConfig(fileName, maxSize, maxDays, maxBackups, backupFileNameOption)
+func NewConfigWithFileLog(fileName, level, format string, maxSize, maxDays, maxBackups int, options ...Option) (*Config, error) {
+	fileCfg, err := NewFileLogConfig(fileName, maxSize, maxDays, maxBackups, options...)
 	if err != nil {
 		return nil, err
 	}

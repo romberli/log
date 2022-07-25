@@ -153,12 +153,12 @@ func InitLumberjackLoggerWithFileLogConfig(cfg *FileLogConfig) (*Writer, error) 
 
 	// use lumberjack to rotate log file
 	return &Writer{
-		Filename:             cfg.FileName,
-		MaxSize:              cfg.MaxSize,
-		MaxBackups:           cfg.MaxBackups,
-		MaxAge:               cfg.MaxDays,
-		LocalTime:            true,
-		BackupFileNameOption: cfg.BackupFileNameOption,
+		Filename:   cfg.FileName,
+		MaxSize:    cfg.MaxSize,
+		MaxBackups: cfg.MaxBackups,
+		MaxAge:     cfg.MaxDays,
+		LocalTime:  true,
+		Options:    cfg.Options,
 	}, nil
 }
 
@@ -242,8 +242,8 @@ func InitStdoutLoggerWithDefault() (*Logger, *ZapProperties, error) {
 }
 
 // InitFileLogger initiates a file logger with given options
-func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups int, backupFileNameOption Option) (*Logger, *ZapProperties, error) {
-	cfg, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups, backupFileNameOption)
+func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups int, options ...Option) (*Logger, *ZapProperties, error) {
+	cfg, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups, options...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -253,12 +253,12 @@ func InitFileLogger(fileName, level, format string, maxSize, maxDays, maxBackups
 
 // InitFileLoggerWithDefaultConfig initiates logger with default options
 func InitFileLoggerWithDefault(fileName string) (*Logger, *ZapProperties, error) {
-	logConfig, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups, nil)
+	cfg, err := NewConfigWithFileLog(fileName, DefaultLogLevel, DefaultLogFormat, DefaultLogMaxSize, DefaultLogMaxDays, DefaultLogMaxBackups, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return InitLoggerWithConfig(logConfig)
+	return InitLoggerWithConfig(cfg)
 }
 
 // InitZapLoggerWithWriteSyncer initializes a zap logger with specified  write syncer.

@@ -102,8 +102,9 @@ type Writer struct {
 	// using gzip. The default is not to perform compression.
 	Compress bool `json:"compress" yaml:"compress"`
 
-	// BackupFileNameOption is an optional function that returns the backup file name
-	BackupFileNameOption Option
+	// Options is an optional function slices that returns the backup file name,
+	// note that, only the first option will be applied.
+	Options []Option
 
 	size int64
 	file *os.File
@@ -243,8 +244,8 @@ func (w *Writer) openNew() error {
 // between the filename and the extension, using the local time if requested
 // (otherwise UTC).
 func (w *Writer) backupName(name string, local bool) string {
-	if w.BackupFileNameOption != nil {
-		return w.BackupFileNameOption(name)
+	if len(w.Options) > 0 {
+		return w.Options[0](name)
 	}
 
 	dir := filepath.Dir(name)
