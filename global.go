@@ -54,10 +54,16 @@ func L() *Logger {
 	return _globalL
 }
 
-// S returns the global SugaredLogger, which can be reconfigured with
-// ReplaceGlobals. It's safe for concurrent use.
+// S returns the global SugaredLogger, which can be reconfigured with ReplaceGlobals.
+// It's safe for concurrent use.
 func S() *zap.SugaredLogger {
 	return _globalS
+}
+
+// P returns the global properties, which can be reconfigured with ReplaceGlobals.
+// It's safe for concurrent use.
+func P() *ZapProperties {
+	return _globalP
 }
 
 // ReplaceGlobals replaces global logger with given logger and properties
