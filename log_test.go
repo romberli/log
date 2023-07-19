@@ -182,3 +182,30 @@ func TestLogRotate(t *testing.T) {
 	asst.Nil(err, "rotate failed")
 	MyLogger.Info("after rotate")
 }
+
+func TestGlobalLogger(t *testing.T) {
+	level := "info"
+	format := "text"
+	fileName := "/tmp/run.log.current"
+	maxSize := 1
+	maxDays := 1
+	maxBackups := 2
+
+	logConfig, err := NewConfigWithFileLog(fileName, level, format, maxSize, maxDays, maxBackups, DefaultRotateOption)
+	if err != nil {
+		fmt.Printf("got error when creating log config.\n%s", err.Error())
+	}
+	MyLogger, MyProps, err = InitLoggerWithConfig(logConfig)
+	SetDisableEscape(true)
+	SetDisableDoubleQuotes(true)
+	ReplaceGlobals(MyLogger, MyProps)
+
+	Info("========")
+	Info("info message")
+	Infof("infof message")
+
+	AddWriteSyncer(NewStdoutWriteSyncer())
+
+	Info("info message after add stdout")
+	Infof("infof message after add stdout")
+}
