@@ -29,11 +29,31 @@ func (logger *Logger) Rotate() error {
 			w, ok := ws.GetWriter().(*Writer)
 			if ok {
 				return w.Rotate()
+			} else {
+				return errors.New("failed to rotate log file, make sure use lumberjack writer as the writer")
+			}
+		}
+
+		mws, ok := core.GetWriterSyncer().(MultiWriteSyncer)
+		if ok {
+			for _, ws := range mws {
+				s, ok := ws.(*WriteSyncer)
+				if ok {
+					w, ok := s.GetWriter().(*Writer)
+					if ok {
+						err := w.Rotate()
+						if err != nil {
+							return err
+						}
+					}
+				}
+
+				continue
 			}
 		}
 	}
 
-	return errors.New("failed to rotate log file, make sure use lumberjack writer as the writer")
+	return errors.New("failed to rotate log file, make sure the core of the logger is a *textIOCore")
 }
 
 // Clone clones logger and returns the new one
