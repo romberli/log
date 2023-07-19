@@ -47,9 +47,9 @@ func (logger *Logger) Rotate() error {
 						}
 					}
 				}
-
-				continue
 			}
+
+			return nil
 		}
 	}
 
