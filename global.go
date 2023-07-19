@@ -88,7 +88,7 @@ func SetDisableEscape(disableEscape bool) {
 // AddWriteSyncer add write syncer to multi write syncer, which allows to add a new way to write log message
 func AddWriteSyncer(ws zapcore.WriteSyncer) {
 	_globalL.AddWriteSyncer(ws)
-	_globalS = _globalL.Sugar()
+	_globalS = _globalL.SugaredLogger
 }
 
 // Clone clones global logger
