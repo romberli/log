@@ -63,20 +63,20 @@ func NewMultiWriteSyncer(ws ...zapcore.WriteSyncer) zapcore.WriteSyncer {
 func (ws MultiWriteSyncer) List() []zapcore.WriteSyncer {
 	var result []zapcore.WriteSyncer
 
-	ws.list(result)
+	ws.list(&result)
 
 	return result
 }
 
 // list lists write syncer of MultiWriteSyncer, it is the implementation of List(),
 // if listed syncer is also a MultiWriteSyncer, it will call recursively.
-func (ws MultiWriteSyncer) list(syncerList []zapcore.WriteSyncer) {
+func (ws MultiWriteSyncer) list(syncerList *[]zapcore.WriteSyncer) {
 	for _, syncer := range ws {
 		s, ok := syncer.(MultiWriteSyncer)
 		if ok {
 			s.list(syncerList)
 		} else {
-			syncerList = append(syncerList, s)
+			*syncerList = append(*syncerList, s)
 		}
 	}
 }
