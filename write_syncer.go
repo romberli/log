@@ -76,7 +76,7 @@ func (ws MultiWriteSyncer) list(syncerList *[]zapcore.WriteSyncer) {
 		if ok {
 			s.list(syncerList)
 		} else {
-			*syncerList = append(*syncerList, s)
+			*syncerList = append(*syncerList, syncer)
 		}
 	}
 }
