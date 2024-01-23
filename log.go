@@ -33,27 +33,6 @@ var (
 	MyProps  *ZapProperties
 )
 
-func StringToLogLevel(level string) Level {
-	switch strings.ToLower(level) {
-	case "panic":
-		return PanicLevel
-	case "fatal":
-		return FatalLevel
-	case "error":
-		return ErrorLevel
-	case "warn", "warning":
-		return WarnLevel
-	case "info":
-		return InfoLevel
-	case "debug":
-		return DebugLevel
-	case "trace":
-		return TraceLevel
-	}
-
-	return InfoLevel
-}
-
 // textFormatter is for compatibility with ngaut/log
 type textFormatter struct {
 	DisableTimestamp bool
