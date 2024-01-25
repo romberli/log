@@ -18,6 +18,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+const (
+	DefaultCallerSkip = 1
+)
+
 var (
 	_globalL, _globalP, _ = NewLogger()
 	_globalS              = _globalL.SugaredLogger
@@ -164,12 +168,12 @@ func With(fields ...zap.Field) *zap.Logger {
 	return L().zapLogger.With(fields...)
 }
 
-// SetLevel alters the logging level.
-func SetLevel(l zapcore.Level) {
-	_globalP.Level.SetLevel(l)
+// GetLevel gets the logging level.
+func GetLevel() Level {
+	return _globalP.Level.Level()
 }
 
-// GetLevel gets the logging level.
-func GetLevel() zapcore.Level {
-	return _globalP.Level.Level()
+// SetLevel alters the logging level.
+func SetLevel(l Level) {
+	_globalP.Level.SetLevel(l)
 }

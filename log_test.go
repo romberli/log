@@ -208,4 +208,13 @@ func TestGlobalLogger(t *testing.T) {
 
 	Info("info message after add stdout")
 	Infof("infof message after add stdout")
+
+	Debugf("debugf message before set level to debug")
+	SetLevel(DebugLevel)
+	Debug("debug message after set level to debug")
+	Debugf("debugf message after set level to debug")
+
+	SetLevel(WarnLevel)
+	Debug("debug message after set level to warn")
+	Errorf("errorf message after set level to warn")
 }
