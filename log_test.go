@@ -1,7 +1,6 @@
 package log
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
 	"testing"
@@ -114,17 +113,6 @@ func funcB() error {
 
 func funcC() error {
 	return errors.Trace(funcB())
-}
-
-type T struct {
-	F func() error
-}
-
-func JSONMarshal() error {
-	t := &T{funcA}
-	_, err := json.Marshal(t)
-
-	return errors.WithStack(err)
 }
 
 type ErrMessage struct {
