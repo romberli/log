@@ -66,6 +66,8 @@ func TestLog(t *testing.T) {
 
 	t.Log("==========print goroutine log entry started==========")
 
+	SetTimeFormat(TimeFormatMilliSecond)
+	SetSeperator(DefaultLogSeparator)
 	SetDisableDoubleQuotes(true)
 	// SetDisableEscape(true)
 	wg.Add(1)

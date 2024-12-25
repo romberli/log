@@ -84,6 +84,16 @@ func (c *textIOCore) clone() *textIOCore {
 	}
 }
 
+// SetTimeFormat sets the time format to the encoder
+func (c *textIOCore) SetTimeFormat(timeFormat string) {
+	c.enc.SetTimeFormat(timeFormat)
+}
+
+// SetSeperator sets the seperator to the encoder
+func (c *textIOCore) SetSeperator(seperator string) {
+	c.enc.SetSeperator(seperator)
+}
+
 // SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (c *textIOCore) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	c.enc.SetDisableDoubleQuotes(disableDoubleQuotes)

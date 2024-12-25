@@ -47,11 +47,21 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const defaultLogTimeFormat = "2006-01-02 15:04:05.000000"
+const (
+	defaultLogTimeFormat  = TimeFormatMicroSecond
+	TimeFormatMicroSecond = "2006-01-02 15:04:05.000000"
+	TimeFormatMilliSecond = "2006-01-02 15:04:05.000"
+
+	DefaultLogSeparator = "->"
+)
 
 // DefaultTimeEncoder serializes time.Time to a human-readable formatted string
 func DefaultTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	s := t.Format(defaultLogTimeFormat)
+	format := defaultLogTimeFormat
+	if enc.(*textEncoder).TimeFormat != "" {
+		format = enc.(*textEncoder).TimeFormat
+	}
+	s := t.Format(format)
 	if e, ok := enc.(*textEncoder); ok {
 		for _, c := range []byte(s) {
 			e.buf.AppendByte(c)
@@ -134,6 +144,8 @@ type textEncoder struct {
 	// for encoding generic values by reflection
 	reflectBuf          *buffer.Buffer
 	reflectEnc          *json.Encoder
+	TimeFormat          string
+	Seperator           string
 	DisableDoubleQuotes bool
 	DisableEscape       bool
 }
@@ -166,6 +178,16 @@ func NewTextEncoder(cfg *Config) zapcore.Encoder {
 		DisableDoubleQuotes: cfg.DisableDoubleQuotes,
 		DisableEscape:       cfg.DisableEscape,
 	}
+}
+
+// SetTimeFormat sets the time format to the encoder
+func (enc *textEncoder) SetTimeFormat(timeFormat string) {
+	enc.TimeFormat = timeFormat
+}
+
+// SetSeperator sets the seperator to the encoder
+func (enc *textEncoder) SetSeperator(seperator string) {
+	enc.Seperator = seperator
 }
 
 // SetDisableDoubleQuotes disables wrapping log content with double quotes
@@ -318,8 +340,7 @@ func (enc *textEncoder) AppendDuration(val time.Duration) {
 	cur := enc.buf.Len()
 	enc.EncodeDuration(val, enc)
 	if cur == enc.buf.Len() {
-		// User-supplied EncodeDuration is a no-op. Fall back to nanoseconds to keep
-		// JSON valid.
+		// User-supplied EncodeDuration is a no-op. Fall back to nanoseconds to keep JSON valid.
 		enc.AppendInt64(int64(val))
 	}
 }
@@ -356,9 +377,9 @@ func (enc *textEncoder) AppendTime(val time.Time) {
 }
 
 func (enc *textEncoder) beginQuoteFiled() {
-	if enc.buf.Len() > 0 {
-		enc.buf.AppendByte(' ')
-	}
+	// if enc.buf.Len() > 0 {
+	// 	enc.buf.AppendByte(' ')
+	// }
 	enc.buf.AppendByte('[')
 }
 
@@ -408,6 +429,8 @@ func (enc *textEncoder) cloned() *textEncoder {
 	clone.openNamespaces = enc.openNamespaces
 	clone.disableErrorVerbose = enc.disableErrorVerbose
 	clone.buf = _pool.Get()
+	clone.TimeFormat = enc.TimeFormat
+	clone.Seperator = enc.Seperator
 	clone.DisableDoubleQuotes = enc.DisableDoubleQuotes
 	clone.DisableEscape = enc.DisableEscape
 	return clone
@@ -420,48 +443,46 @@ func (enc *textEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (
 		final.AppendTime(ent.Time)
 		final.endQuoteFiled()
 	}
-
+	if ent.Caller.Defined && final.CallerKey != "" {
+		final.beginQuoteFiled()
+		cur := final.buf.Len()
+		final.EncodeCaller(ent.Caller, final)
+		if cur == final.buf.Len() {
+			// User-supplied EncodeCaller was a no-op. Fall back to strings to keep output JSON valid.
+			final.AppendString(ent.Caller.String())
+		}
+		final.endQuoteFiled()
+	}
 	if final.LevelKey != "" {
 		final.beginQuoteFiled()
 		cur := final.buf.Len()
 		final.EncodeLevel(ent.Level, final)
 		if cur == final.buf.Len() {
-			// User-supplied EncodeLevel was a no-op. Fall back to strings to keep
-			// output JSON valid.
+			// User-supplied EncodeLevel was a no-op. Fall back to strings to keep output JSON valid.
 			final.AppendString(ent.Level.String())
 		}
 		final.endQuoteFiled()
 	}
-
 	if ent.LoggerName != "" && final.NameKey != "" {
 		final.beginQuoteFiled()
 		cur := final.buf.Len()
 		nameEncoder := final.EncodeName
 
-		// if no name encoder provided, fall back to FullNameEncoder for backwards
-		// compatibility
+		// if no name encoder provided, fall back to FullNameEncoder for backwards compatibility
 		if nameEncoder == nil {
 			nameEncoder = zapcore.FullNameEncoder
 		}
 
 		nameEncoder(ent.LoggerName, final)
 		if cur == final.buf.Len() {
-			// User-supplied EncodeName was a no-op. Fall back to strings to
-			// keep output JSON valid.
+			// User-supplied EncodeName was a no-op. Fall back to strings to keep output JSON valid.
 			final.AppendString(ent.LoggerName)
 		}
 		final.endQuoteFiled()
 	}
-	if ent.Caller.Defined && final.CallerKey != "" {
-		final.beginQuoteFiled()
-		cur := final.buf.Len()
-		final.EncodeCaller(ent.Caller, final)
-		if cur == final.buf.Len() {
-			// User-supplied EncodeCaller was a no-op. Fall back to strings to
-			// keep output JSON valid.
-			final.AppendString(ent.Caller.String())
-		}
-		final.endQuoteFiled()
+	// add seperator
+	if final.Seperator != "" {
+		final.buf.AppendString(final.Seperator)
 	}
 	// add Message
 	if len(ent.Message) > 0 {
@@ -687,8 +708,7 @@ func (enc *textEncoder) encodeError(f zapcore.Field) {
 	if e, isFormatter := err.(fmt.Formatter); isFormatter {
 		verbose := fmt.Sprintf("%+v", e)
 		if verbose != basic {
-			// This is a rich error type, like those produced by
-			// github.com/pkg/errors.
+			// This is a rich error type, like those produced by github.com/pkg/errors.
 			enc.beginQuoteFiled()
 			enc.AddString(f.Key+"Verbose", verbose)
 			enc.endQuoteFiled()

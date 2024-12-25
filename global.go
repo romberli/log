@@ -52,6 +52,18 @@ func ReplaceGlobals(logger *Logger, props *ZapProperties) {
 	_globalP = props
 }
 
+// SetTimeFormat sets the time format of global logger
+func SetTimeFormat(timeFormat string) {
+	_globalL.SetTimeFormat(timeFormat)
+	_globalP.Core.(*textIOCore).SetTimeFormat(timeFormat)
+}
+
+// SetSeperator sets the seperator of global logger
+func SetSeperator(seperator string) {
+	_globalL.SetSeperator(seperator)
+	_globalP.Core.(*textIOCore).SetSeperator(seperator)
+}
+
 // SetDisableDoubleQuotes disables wrapping log content with double quotes of global logger
 func SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	_globalL.SetDisableDoubleQuotes(disableDoubleQuotes)

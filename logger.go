@@ -61,6 +61,16 @@ func (logger *Logger) Clone() *Logger {
 	return CloneLogger(logger)
 }
 
+// SetTimeFormat sets the time format of log message
+func (logger *Logger) SetTimeFormat(timeFormat string) {
+	logger.zapLogger.Core().(*textIOCore).SetTimeFormat(timeFormat)
+}
+
+// SetSeperator sets the seperator to log message
+func (logger *Logger) SetSeperator(seperator string) {
+	logger.zapLogger.Core().(*textIOCore).SetSeperator(seperator)
+}
+
 // SetDisableDoubleQuotes disables wrapping log content with double quotes
 func (logger *Logger) SetDisableDoubleQuotes(disableDoubleQuotes bool) {
 	logger.zapLogger.Core().(*textIOCore).SetDisableDoubleQuotes(disableDoubleQuotes)
